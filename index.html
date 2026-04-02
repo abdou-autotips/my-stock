@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +8,6 @@
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; padding: 20px; margin: 0; }
         .container { max-width: 1200px; background: white; margin: auto; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
-        /* مركز النسخ الاحتياطي */
         .backup-bar { background: #ebf5fb; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; border: 1px dashed var(--blue); }
         .backup-bar span { font-weight: bold; color: var(--blue); flex-grow: 1; }
 
@@ -56,20 +55,156 @@
             <input type="text" id="name" placeholder="اسم القطعة">
             <input type="text" id="ref" placeholder="المرجع (Ref)">
             <input type="text" id="vend" placeholder="المورد">
-            <input type="number" id="buy" placeholder="سعر الشراء">
-            <input type="number" id="sell" placeholder="سعر البيع">
-            <input type="number" id="qty" placeholder="الكمية">
-            <input type="file" id="img" accept="image/*" style="font-size: 11px;">
+            <input type="text" id="buy" placeholder="سعر الشراء">
+            <input type="text" id="sell" placeholder="سعر البيع">
+            <input type="text" id="qty" placeholder="الكمية">
+            <input type="file" id="img" accept="image/*">
             <button style="background: var(--blue)" onclick="saveToStock()">📥 إضافة للمخزن</button>
         </div>
-        <table>
+        
+        <table id="stockTable">
             <thead>
-                <tr><th>الصورة</th><th>الاسم</th><th>المرجع</th><th>المورد</th><th>شراء</th><th>بيع</th><th>الكمية</th><th class="no-print">حذف</th></tr>
+                <tr>
+                    <th>الصورة</th>
+                    <th>الاسم</th>
+                    <th>المرجع</th>
+                    <th>المورد</th>
+                    <th>شراء</th>
+                    <th>بيع</th>
+                    <th>الكمية</th>
+                    <th class="no-print">حذف</th>
+                </tr>
             </thead>
-            <tbody id="invTableBody"></tbody>
+            <tbody id="stockBody"></tbody>
         </table>
     </div>
 
     <div id="pos" class="content">
-        <div class="no-print" style="margin-bottom:20px; background:#f9f9f9; padding:15px; border-radius:8px">
-            <input type="text" id="cust" placeholder="اسم الزبون" style="width:250px; margin-bottom:10px"><br>
+        </div>
+</div>
+
+<script>
+    let stock = JSON.parse(localStorage.getItem('ha_stock')) || [];
+
+    function switchTab(evt, tabName) {
+        let i, content, tablinks;
+        content = document.getElementsByClassName("content");
+        for (i = 0; i < content.length; i++) content[i].style.display = "none";
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    function saveToStock() {
+        const name = document.getElementById('name').value;
+        const ref = document.getElementById('ref').value;
+        const vend = document.getElementById('vend').value;
+        const buyInput = document.getElementById('buy').value || "0";
+        const sellInput = document.getElementById('sell').value || "0";
+        const qtyInput = document.getElementById('qty').value || "0";
+        const imgInput = document.getElementById('img');
+
+        if (name.trim() === "" || qtyInput === "0") {
+            alert("يرجى إدخال اسم القطعة والكمية! ⚠️");
+            return;
+        }
+
+        // معالجة العمليات الحسابية في الخانات (مثل 65+5)
+        let buy, sell, qty;
+        try {
+            buy = eval(buyInput);
+            sell = eval(sellInput);
+            qty = eval(qtyInput);
+        } catch(e) {
+            alert("خطأ في الأرقام! تأكد من كتابتها بشكل صحيح.");
+            return;
+        }
+
+        const reader = new FileReader();
+        const finalize = (imageData) => {
+            const newItem = {
+                id: Date.now(),
+                name: name,
+                ref: ref,
+                vend: vend,
+                buy: parseFloat(buy),
+                sell: parseFloat(sell),
+                qty: parseFloat(qty),
+                img: imageData || ''
+            };
+            stock.push(newItem);
+            saveAndRender();
+            // تنظيف الخانات
+            document.querySelectorAll('.grid-inputs input').forEach(input => input.value = '');
+            alert("تمت الإضافة بنجاح! ✅");
+        };
+
+        if (imgInput.files && imgInput.files[0]) {
+            reader.onload = (e) => finalize(e.target.result);
+            reader.readAsDataURL(imgInput.files[0]);
+        } else {
+            finalize('');
+        }
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('ha_stock', JSON.stringify(stock));
+        renderStock();
+    }
+
+    function renderStock() {
+        const body = document.getElementById('stockBody');
+        body.innerHTML = '';
+        stock.forEach((item, index) => {
+            body.innerHTML += `
+                <tr>
+                    <td><img src="${item.img || ''}" class="img-box"></td>
+                    <td>${item.name}</td>
+                    <td>${item.ref}</td>
+                    <td>${item.vend}</td>
+                    <td>${item.buy}</td>
+                    <td>${item.sell}</td>
+                    <td>${item.qty}</td>
+                    <td class="no-print"><button style="background:var(--red)" onclick="deleteItem(${index})">حذف</button></td>
+                </tr>
+            `;
+        });
+    }
+
+    function deleteItem(index) {
+        if(confirm("هل أنت متأكد من الحذف؟")) {
+            stock.splice(index, 1);
+            saveAndRender();
+        }
+    }
+
+    // دوال النسخ الاحتياطي
+    function exportData() {
+        const dataStr = JSON.stringify(stock);
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `HA_Backup_${new Date().toLocaleDateString()}.json`;
+        link.click();
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            stock = JSON.parse(e.target.result);
+            saveAndRender();
+            alert("تم استرجاع البيانات بنجاح! 📥");
+        };
+        reader.readAsText(file);
+    }
+
+    // تشغيل العرض عند فتح الصفحة
+    window.onload = renderStock;
+</script>
+
+</body>
+</html>
