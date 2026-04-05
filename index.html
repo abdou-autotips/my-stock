@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT - نظام التسيير الاحترافي</title>
+    <title>HA EXPERT - النسخة المطورة v2</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --red: #c0392b; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; }
@@ -13,20 +13,29 @@
         .tab-btn.active { background: var(--main); color: white; }
         .content { display: none; }
         .content.active { display: block; }
-        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        
+        /* خانة البحث */
+        .search-box { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid var(--main); border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; }
         input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
         .btn-add { background: var(--blue); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
+        /* الإحصائيات */
+        .stats-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .stat-card { flex: 1; min-width: 150px; background: var(--dark); color: white; padding: 10px; border-radius: 8px; text-align: center; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
         th { background: var(--dark); color: white; padding: 10px; }
         td { border-bottom: 1px solid #eee; padding: 8px; text-align: center; }
         .img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
+        
         .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; }
         .product-card { border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; background: white; transition: 0.3s; }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .product-card img { width: 100%; height: 130px; object-fit: cover; border-radius: 8px; }
-        .price { color: var(--main); font-weight: bold; font-size: 1.1rem; margin: 5px 0; }
-        .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--green); color: white; padding: 12px 20px; border-radius: 50px; cursor: pointer; z-index: 1000; font-weight: bold; border: 2px solid white; }
-        .admin-tools { margin-top: 20px; padding: 10px; border-top: 2px dashed #ccc; }
+        .price { color: var(--main); font-weight: bold; font-size: 1.1rem; }
+        
+        .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--green); color: white; padding: 12px 20px; border-radius: 50px; cursor: pointer; z-index: 1000; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -40,12 +49,18 @@
     </div>
 
     <div id="store" class="content active">
+        <input type="text" class="search-box" placeholder="🔍 ابحث عن قطعة (مثال: Joint, Bouchon...)" onkeyup="filterProducts(this.value, 'storeBody')">
         <div class="store-grid" id="storeBody"></div>
     </div>
 
     <div id="inventory" class="content">
+        <div class="stats-bar">
+            <div class="stat-card">رأس المال: <span id="totalBuy">0</span> د.ج</div>
+            <div class="stat-card" style="background:var(--green)">الفائدة المتوقعة: <span id="totalProfit">0</span> د.ج</div>
+        </div>
+
         <div class="grid-inputs">
-            <input type="text" id="name" placeholder="اسم القطعة (باللاتينية للترتيب)">
+            <input type="text" id="name" placeholder="اسم القطعة">
             <input type="text" id="ref" placeholder="المرجع (Ref)">
             <input type="text" id="vend" placeholder="المورد">
             <input type="number" id="buy" placeholder="سعر الشراء">
@@ -54,6 +69,8 @@
             <input type="file" id="img" accept="image/*">
             <button class="btn-add" onclick="saveToStock()">📥 إضافة للمخزن</button>
         </div>
+
+        <input type="text" class="search-box" style="border-color:var(--dark)" placeholder="🔍 بحث سريع في المخزن..." onkeyup="filterProducts(this.value, 'stockBody')">
 
         <table>
             <thead>
@@ -69,12 +86,11 @@
             <tbody id="stockBody"></tbody>
         </table>
 
-        <div class="admin-tools">
-            <h4>نقل البيانات (من الكمبيوتر للهاتف)</h4>
-            <button onclick="exportData()" style="background:var(--dark); color:white; padding:8px; border-radius:5px; border:none; cursor:pointer;">📥 تحميل نسخة Backup</button>
-            <p style="font-size:0.8rem; color:gray;">انسخ محتوى ملف Backup والصقه هنا لتحديث الهاتف:</p>
-            <textarea id="importArea" style="width:100%; height:60px;" placeholder="الصق الكود هنا..."></textarea>
-            <button onclick="importData()" style="background:var(--blue); color:white; padding:8px; border-radius:5px; border:none; cursor:pointer; margin-top:5px;">✅ تحديث البيانات</button>
+        <div style="margin-top:20px; background:#eee; padding:15px; border-radius:10px;">
+            <h4>أدوات المزامنة</h4>
+            <button onclick="exportData()" style="padding:10px; cursor:pointer;">📥 حفظ نسخة Backup</button>
+            <textarea id="importArea" style="width:100%; margin-top:10px;" placeholder="الصق كود المزامنة هنا..."></textarea>
+            <button onclick="importData()" style="padding:10px; background:var(--blue); color:white; border:none; margin-top:5px; cursor:pointer;">✅ تحديث البيانات</button>
         </div>
     </div>
 </div>
@@ -86,36 +102,32 @@
 <script>
     let stock = JSON.parse(localStorage.getItem('ha_stock')) || [];
     let cart = [];
-    const SECRET_KEY = "HA2026"; // كلمة السر الخاصة بك
+    const SECRET_KEY = "HA2026";
 
     function secureAccess(evt) {
         let pass = prompt("الرجاء إدخال كود الوصول السري:");
-        if (pass === SECRET_KEY) {
-            switchTab(evt, 'inventory');
-        } else {
-            alert("⚠️ تنبيه: الكود خاطئ. الدخول ممنوع!");
-        }
+        if (pass === SECRET_KEY) switchTab(evt, 'inventory');
+        else alert("الكود خاطئ!");
     }
 
     function switchTab(evt, tabName) {
-        let content = document.getElementsByClassName("content");
-        for (let i = 0; i < content.length; i++) content[i].style.display = "none";
-        let tablinks = document.getElementsByClassName("tab-btn");
-        for (let i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
+        document.querySelectorAll('.content').forEach(c => c.style.display = "none");
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove("active"));
         document.getElementById(tabName).style.display = "block";
         if(evt.currentTarget) evt.currentTarget.classList.add("active");
+        updateStats();
     }
 
     function saveToStock() {
         const name = document.getElementById('name').value;
         const ref = document.getElementById('ref').value;
         const vend = document.getElementById('vend').value;
-        const buy = document.getElementById('buy').value || 0;
-        const sell = document.getElementById('sell').value || 0;
-        const qty = document.getElementById('qty').value || 0;
+        const buy = parseFloat(document.getElementById('buy').value) || 0;
+        const sell = parseFloat(document.getElementById('sell').value) || 0;
+        const qty = parseFloat(document.getElementById('qty').value) || 0;
         const imgInput = document.getElementById('img');
 
-        if (!name) return alert("الاسم ضروري!");
+        if (!name) return alert("الاسم مطلوب!");
 
         const finalize = (imgData) => {
             stock.push({ id: Date.now(), name, ref, vend, buy, sell, qty, img: imgData || '' });
@@ -127,40 +139,54 @@
             const reader = new FileReader();
             reader.onload = (e) => finalize(e.target.result);
             reader.readAsDataURL(imgInput.files[0]);
-        } else { finalize(''); }
+        } else finalize('');
     }
 
     function updateAll() {
-        // ميزة الترتيب الأبجدي A-Z
         stock.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-        
         localStorage.setItem('ha_stock', JSON.stringify(stock));
         renderAdminTable();
         renderStore();
+        updateStats();
+    }
+
+    function updateStats() {
+        let totalBuy = 0; let totalProfit = 0;
+        stock.forEach(item => {
+            totalBuy += (item.buy * item.qty);
+            totalProfit += ((item.sell - item.buy) * item.qty);
+        });
+        document.getElementById('totalBuy').innerText = totalBuy.toLocaleString();
+        document.getElementById('totalProfit').innerText = totalProfit.toLocaleString();
+    }
+
+    function filterProducts(val, bodyId) {
+        const items = document.querySelectorAll(`#${bodyId} .product-card, #${bodyId} tr`);
+        items.forEach(item => {
+            item.style.display = item.innerText.toLowerCase().includes(val.toLowerCase()) ? "" : "none";
+        });
     }
 
     function renderAdminTable() {
-        const body = document.getElementById('stockBody');
-        body.innerHTML = stock.map((item, idx) => `
+        document.getElementById('stockBody').innerHTML = stock.map((item, idx) => `
             <tr>
                 <td><img src="${item.img}" class="img-preview"></td>
                 <td style="text-align:right;">${item.name}</td>
                 <td>${item.buy}</td>
                 <td>${item.sell}</td>
                 <td>${item.qty}</td>
-                <td><button onclick="deleteItem(${idx})" style="background:var(--red); color:white; border:none; padding:5px; border-radius:5px;">حذف</button></td>
+                <td><button onclick="deleteItem(${idx})" style="background:var(--red); color:white; border:none; padding:5px; border-radius:5px;">X</button></td>
             </tr>
         `).join('');
     }
 
     function renderStore() {
-        const body = document.getElementById('storeBody');
-        body.innerHTML = stock.map((item) => `
+        document.getElementById('storeBody').innerHTML = stock.map((item) => `
             <div class="product-card">
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
                 <h4>${item.name}</h4>
                 <div class="price">${item.sell} د.ج</div>
-                <button onclick="addToCart('${item.id}')" style="background:var(--green); color:white; border:none; width:100%; padding:8px; border-radius:5px; cursor:pointer;">إضافة للطلب</button>
+                <button onclick="addToCart('${item.id}')" style="background:var(--green); color:white; border:none; width:100%; padding:8px; border-radius:5px; cursor:pointer;">🛒 طلب</button>
             </div>
         `).join('');
     }
@@ -171,35 +197,26 @@
     }
 
     function sendWhatsApp() {
-        if (cart.length === 0) return alert("اختر منتجات أولاً!");
-        let phone = "213XXXXXXXXX"; // ضع رقمك هنا
+        if (cart.length === 0) return alert("السلة فارغة!");
+        let phone = "213XXXXXXXXX"; // رقمك هنا
         let text = "طلب جديد HA EXPERT:\n";
         let total = 0;
         cart.forEach(item => { text += `- ${item.name} (${item.sell} د.ج)\n`; total += parseFloat(item.sell); });
-        text += `\nالمجموع الإجمالي: ${total} د.ج`;
+        text += `\nالمجموع: ${total} د.ج`;
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`);
     }
 
     function exportData() {
-        const dataStr = JSON.stringify(stock);
-        const blob = new Blob([dataStr], {type: "application/json"});
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "HA_Stock_Backup.json";
-        a.click();
+        const blob = new Blob([JSON.stringify(stock)], {type: "application/json"});
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+        a.download = "HA_Stock_Backup.json"; a.click();
     }
 
     function importData() {
-        const val = document.getElementById('importArea').value;
         try {
-            const parsed = JSON.parse(val);
-            if (Array.isArray(parsed)) {
-                stock = parsed;
-                updateAll();
-                alert("تم تحديث البيانات بنجاح!");
-                document.getElementById('importArea').value = '';
-            }
-        } catch(e) { alert("خطأ في الكود الملصق!"); }
+            const parsed = JSON.parse(document.getElementById('importArea').value);
+            if (Array.isArray(parsed)) { stock = parsed; updateAll(); alert("تم التحديث!"); }
+        } catch(e) { alert("خطأ في الكود!"); }
     }
 
     function deleteItem(idx) { if(confirm("حذف؟")) { stock.splice(idx, 1); updateAll(); } }
