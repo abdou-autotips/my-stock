@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v4.1 - النسخة الاحترافية</title>
+    <title>HA EXPERT v4.2 - الوصل + واتساب</title>
     <style>
-        :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --red: #c0392b; }
+        :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --red: #c0392b; --whatsapp: #25D366; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; }
         .container { max-width: 1200px; background: white; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
@@ -23,10 +23,10 @@
         .price { color: var(--main); font-weight: bold; margin: 5px 0; }
         .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--green); color: white; padding: 12px 20px; border-radius: 50px; cursor: pointer; z-index: 1000; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         #bonModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; overflow-y:auto; padding:20px; box-sizing:border-box; }
-        .bon-content { background:white; max-width:600px; margin:auto; padding:30px; border-radius:10px; position:relative; }
-        #printableBon { border: 2px solid #333; padding: 20px; color: #000; background: white; }
+        .bon-content { background:white; max-width:600px; margin:auto; padding:25px; border-radius:10px; position:relative; }
+        #printableBon { border: 2px solid #333; padding: 20px; color: #000; background: white; margin-top:10px; }
         .bon-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-        .bon-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .bon-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
         .bon-table th, .bon-table td { border: 1px solid #333; padding: 8px; text-align: center; }
         @media print { body * { visibility: hidden; } #printableBon, #printableBon * { visibility: visible; } #printableBon { position: absolute; left: 0; top: 0; width: 100%; } }
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
@@ -35,12 +35,13 @@
         th { background: var(--dark); color: white; padding: 10px; }
         td { border-bottom: 1px solid #eee; padding: 8px; text-align: center; }
         .sync-area { margin-top:20px; background:#f0f2f5; padding:15px; border-radius:10px; border:1px dashed #adb5bd; display:none; }
+        .btn-ws { background: var(--whatsapp); color: white; border: none; padding: 12px; border-radius: 5px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="text-align:center; color:var(--main);">HA EXPERT v4.1</h2>
+    <h2 style="text-align:center; color:var(--main);">HA EXPERT v4.2</h2>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab(event, 'store')">🛒 المتجر</button>
@@ -69,14 +70,12 @@
             <thead><tr><th>الصورة</th><th>الاسم</th><th>الكمية</th><th>حذف</th></tr></thead>
             <tbody id="stockBody"></tbody>
         </table>
-
         <button onclick="toggleSync()" style="margin-top:30px; background:none; border:1px solid #ccc; color:#888; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:0.8rem;">⚙️ إعدادات المزامنة والأمان</button>
-        
         <div id="syncTools" class="sync-area">
-            <h4>🔄 مزامنة البيانات (Backup)</h4>
-            <button onclick="exportData()" style="padding:10px; background:var(--dark); color:white; border:none; border-radius:5px; cursor:pointer; margin-bottom:10px;">📥 تحميل نسخة للملفات</button>
-            <textarea id="importArea" style="width:100%; height:60px; margin-top:10px;" placeholder="الصق كود المزامنة هنا..."></textarea>
-            <button onclick="importData()" style="background:var(--blue); color:white; border:none; padding:10px; width:100%; margin-top:5px; cursor:pointer; border-radius:5px;">✅ تحديث البيانات</button>
+            <h4>🔄 المزامنة (Backup)</h4>
+            <button onclick="exportData()" style="padding:10px; background:var(--dark); color:white; border:none; border-radius:5px;">📥 تحميل النسخة</button>
+            <textarea id="importArea" style="width:100%; height:60px; margin-top:10px;" placeholder="الصق الكود هنا..."></textarea>
+            <button onclick="importData()" style="background:var(--blue); color:white; border:none; padding:10px; width:100%; margin-top:5px; border-radius:5px;">✅ تحديث البيانات</button>
         </div>
     </div>
 </div>
@@ -87,28 +86,28 @@
 
 <div id="bonModal">
     <div class="bon-content">
-        <button onclick="closeBon()" style="float:left; background:var(--red); color:white; border:none; padding:5px 10px; cursor:pointer;">إغلاق X</button>
-        <h3>تجهيز الوصل</h3>
-        <input type="text" id="customerName" placeholder="اسم الزبون..." style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
+        <button onclick="closeBon()" style="float:left; background:var(--red); color:white; border:none; padding:5px 10px; cursor:pointer;">X</button>
+        <h3 style="margin:0 0 15px 0;">تجهيز الوصل</h3>
+        <input type="text" id="customerName" placeholder="اسم الزبون (اختياري)..." style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
         
         <div id="printableBon">
             <div class="bon-header">
-                <h2>HA EXPERT - قطع الغيار</h2>
-                <p>وصل استلام (Bon de Livraison)</p>
-                <p id="bonDate"></p>
-                <h4 id="displayCustomer">الزبون: ....................</h4>
+                <h2 style="margin:0;">HA EXPERT</h2>
+                <p style="margin:5px 0;">وصل استلام (Bon de Livraison)</p>
+                <p id="bonDate" style="font-size:0.8rem; margin:0;"></p>
+                <h4 id="displayCustomer" style="margin:10px 0 0 0;">الزبون: ....................</h4>
             </div>
             <table class="bon-table">
                 <thead><tr><th>القطعة</th><th>السعر</th></tr></thead>
                 <tbody id="bonItemsBody"></tbody>
                 <tfoot><tr><th>المجموع الإجمالي:</th><th id="bonTotal">0</th></tr></tfoot>
             </table>
-            <p style="text-align:center; font-size:0.8rem;">شكراً لثقتكم بنا!</p>
         </div>
         
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button onclick="window.print()" style="flex:1; padding:15px; background:var(--dark); color:white; border:none; cursor:pointer; border-radius:5px; font-weight:bold;">🖨️ طباعة أو حفظ PDF</button>
-            <button onclick="clearCart()" style="padding:15px; background:var(--red); color:white; border:none; cursor:pointer; border-radius:5px;">🗑️ تفريغ</button>
+        <button onclick="sendWhatsApp()" class="btn-ws">📱 إرسال الطلب عبر WhatsApp</button>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="window.print()" style="flex:1; padding:12px; background:var(--dark); color:white; border:none; cursor:pointer; border-radius:5px;">🖨️ طباعة / PDF</button>
+            <button onclick="clearCart()" style="padding:12px; background:var(--red); color:white; border:none; cursor:pointer; border-radius:5px;">🗑️ تفريغ</button>
         </div>
     </div>
 </div>
@@ -118,6 +117,7 @@
     let cart = [];
     let currentCat = 'الكل';
     const SECRET_KEY = "HA2026";
+    const MY_PHONE = "213XXXXXXXXX"; // ضع رقمك هنا
 
     function secureAccess(evt) {
         let pass = prompt("أدخل كود المدير:");
@@ -140,9 +140,7 @@
         const sell = parseFloat(document.getElementById('sell').value) || 0;
         const qty = parseFloat(document.getElementById('qty').value) || 0;
         const imgInput = document.getElementById('img');
-
         if (!name) return alert("الاسم ضروري!");
-
         const finalize = (imgData) => {
             stock.push({ id: Date.now(), name, cat, buy, sell, qty, img: imgData || '' });
             updateAll();
@@ -170,7 +168,7 @@
         `).join('');
     }
 
-    function setCat(c) { currentCat = c; filterAll(); }
+    function setCat(c) { currentCat = c; filterAll(); updateAll(); }
 
     function filterAll() {
         const s = document.getElementById('storeSearch').value.toLowerCase();
@@ -223,28 +221,41 @@
         };
     }
 
+    function sendWhatsApp() {
+        if(cart.length === 0) return;
+        let customer = document.getElementById('customerName').value || "زبون محترم";
+        let text = `📦 *طلب جديد من HA EXPERT*\n`;
+        text += `👤 *الزبون:* ${customer}\n`;
+        text += `📅 *التاريخ:* ${new Date().toLocaleDateString()}\n`;
+        text += `--------------------------\n`;
+        let total = 0;
+        cart.forEach(item => {
+            text += `🔹 ${item.name} -> ${item.sell} د.ج\n`;
+            total += parseFloat(item.sell);
+        });
+        text += `--------------------------\n`;
+        text += `💰 *المجموع الإجمالي:* ${total} د.ج`;
+        window.open(`https://wa.me/${MY_PHONE}?text=${encodeURIComponent(text)}`);
+    }
+
     function closeBon() { document.getElementById('bonModal').style.display = "none"; }
     function clearCart() { cart = []; document.getElementById('cartCount').innerText = "0"; closeBon(); }
     function deleteItem(idx) { if(confirm("حذف؟")) { stock.splice(idx,1); updateAll(); } }
-
     function toggleSync() {
-        const tools = document.getElementById('syncTools');
-        tools.style.display = tools.style.display === 'none' ? 'block' : 'none';
+        const t = document.getElementById('syncTools');
+        t.style.display = t.style.display === 'none' ? 'block' : 'none';
     }
-
     function exportData() {
         const blob = new Blob([JSON.stringify(stock)], {type: "application/json"});
         const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
         a.download = "HA_Stock_Backup.json"; a.click();
     }
-
     function importData() {
         try {
             const parsed = JSON.parse(document.getElementById('importArea').value);
-            if (Array.isArray(parsed)) { stock = parsed; updateAll(); alert("تم التحديث بنجاح!"); toggleSync(); }
-        } catch(e) { alert("خطأ في الكود الملصق!"); }
+            if (Array.isArray(parsed)) { stock = parsed; updateAll(); alert("تم التحديث!"); toggleSync(); }
+        } catch(e) { alert("خطأ في الكود!"); }
     }
-
     window.onload = updateAll;
 </script>
 </body>
