@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v5.7 - Full Edition</title>
+    <title>HA EXPERT v5.8 - Fixed Edition</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --red: #c0392b; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; }
@@ -19,7 +19,7 @@
         .content { display: none; }
         .content.active { display: block; }
         
-        .search-box { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid var(--main); border-radius: 8px; }
+        .search-box { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid var(--main); border-radius: 8px; box-sizing: border-box; }
         .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
         .product-card { border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; background: white; }
         .product-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; }
@@ -37,11 +37,14 @@
             #printableBon, #printableBon * { visibility: visible; }
             #printableBon { position: absolute; left: 0; top: 0; width: 100% !important; margin: 0; padding: 0; }
             .no-print { display: none !important; }
+            .qty-controls { display: none; }
             @page { size: auto; margin: 5mm; }
         }
 
         .bon-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; }
         .bon-footer { margin-top: 20px; border-top: 1px solid #333; padding-top: 10px; text-align: center; font-size: 0.8rem; }
+        
+        .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--green); color: white; padding: 12px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000; }
     </style>
 </head>
 <body>
@@ -117,14 +120,14 @@
             </table>
 
             <div class="bon-footer">
-                <p>📍 الجزائر | 📞 0558713665 0550461326</p>
+                <p>📍 الجزائر | 📞 0558713665 - 0550461326</p>
                 <p id="displayEmail">📧 abdou.autotips@gmail.com</p>
                 <p style="font-size:0.7rem;">شكراً لثقتكم بنا</p>
             </div>
         </div>
         
         <div class="no-print" style="margin-top:20px; display: flex; gap: 10px;">
-            <button onclick="window.print()" style="flex:1; background:var(--dark); color:white; padding:12px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🖨️ طباعة (ورقة واحدة)</button>
+            <button onclick="window.print()" style="flex:1; background:var(--dark); color:white; padding:12px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🖨️ طباعة</button>
             <button onclick="sendWhatsApp()" style="flex:1; background:var(--green); color:white; padding:12px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">📱 واتساب</button>
         </div>
     </div>
@@ -134,8 +137,9 @@
     let stock = [];
     let cart = {};
     const SECRET_KEY = "HA2026";
-    const MY_PHONE = "213558713665 213550461326"; 
-    const MY_EMAIL = "abdou.autotips@gmail.com"; // غير الإيميل هنا
+    // ملاحظة: الواتساب يحتاج رقم واحد فقط لفتح الرابط
+    const WHATSAPP_PHONE = "213558713665"; 
+    const MY_EMAIL = "abdou.autotips@gmail.com";
 
     async function loadStock() {
         try {
@@ -180,12 +184,12 @@
                     <td>${item.name}</td>
                     <td>${item.sell}</td>
                     <td>
-                        <span class="no-print">
+                        <span class="no-print qty-controls">
                             <button class="qty-btn" onclick="changeQty('${item.id}', -1)">-</button>
-                            ${item.qty}
+                            <span style="margin:0 5px">${item.qty}</span>
                             <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
                         </span>
-                        <span style="display:none;" class="print-val">${item.qty}</span>
+                        <span class="print-only-inline" style="display:none;">${item.qty}</span>
                     </td>
                     <td>${sub}</td>
                 </tr>
@@ -210,7 +214,7 @@
             total += i.sell * i.qty;
         });
         text += `----------\n💰 *المجموع:* ${total} DA\n📧 ${MY_EMAIL}`;
-        window.open(`https://wa.me/${MY_PHONE}?text=${encodeURIComponent(text)}`);
+        window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`);
     }
 
     function saveToStock() {
