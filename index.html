@@ -2,89 +2,105 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HA EXPERT v6.1 - Responsive Fix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HA EXPERT v6.2 - Multi-Device Fix</title>
     <style>
-        :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --red: #c0392b; }
-        
-        /* منع الخروج عن الإطار */
+        :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; }
         * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 10px; }
         
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 8px; overflow-x: hidden; }
+        .container { max-width: 1100px; background: white; margin: auto; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        .container { max-width: 1000px; background: white; margin: auto; padding: 12px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; }
-        
-        #loader { text-align:center; padding:50px; background:white; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-        .spin { border: 5px solid #f3f3f3; border-top: 5px solid var(--main); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .tabs { display: flex; gap: 5px; margin-bottom: 15px; width: 100%; }
-        .tab-btn { flex: 1; padding: 10px; border: none; cursor: pointer; background: #ddd; font-weight: bold; border-radius: 8px; font-size: 0.9rem; }
-        .tab-btn.active { background: var(--main); color: white; }
-        
-        .content { display: none; width: 100%; }
-        .content.active { display: block; }
-        
-        .search-box { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid var(--main); border-radius: 8px; font-size: 1rem; }
-        
-        /* تصحيح شبكة المنتجات */
-        .store-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
-        
-        .product-card { border: 1px solid #eee; border-radius: 10px; padding: 8px; text-align: center; background: white; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; }
-        .product-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
-        .product-card h4 { font-size: 0.8rem; margin: 5px 0; height: 32px; overflow: hidden; }
-        .price { color: var(--main); font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; }
-        
-        .btn-order { width: 100%; background: var(--green); color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-
-        /* مودالات */
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; overflow-y: auto; padding: 10px; }
-        .modal-content { background:white; max-width:500px; margin: 10px auto; padding:15px; border-radius:12px; position: relative; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 0.8rem; }
-        .qty-btn { background: #f0f0f0; border: 1px solid #ccc; padding: 5px 12px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-
-        @media print {
-            @page { size: portrait; margin: 0; }
-            html, body { height: 100vh; overflow: hidden !important; margin: 0 !important; padding: 0 !important; }
-            .container, .tabs, .cart-float, .no-print, #loader, .modal-content > button, .qty-btn { display: none !important; }
-            #bonModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white !important; display: block !important; z-index: 9999; }
-            .modal-content { max-width: 100% !important; margin: 0 !important; padding: 15px !important; border: none !important; }
-            #printableBon { width: 100%; display: block !important; }
+        /* التبديل بين الأجهزة */
+        .store-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+            gap: 12px; 
+            margin-top: 15px;
         }
 
-        .cart-float { position: fixed; bottom: 15px; left: 15px; background: var(--green); color: white; padding: 10px 18px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1500; font-size: 0.9rem; }
+        /* تنسيق الكارط */
+        .product-card { 
+            border: 1px solid #eee; 
+            border-radius: 8px; 
+            padding: 10px; 
+            text-align: center; 
+            background: #fff; 
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 280px;
+        }
+        .product-card:hover { border-color: var(--main); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        
+        .product-card img { 
+            width: 100%; 
+            height: 140px; 
+            object-fit: contain; 
+            border-radius: 5px; 
+            background: #f9f9f9;
+        }
+
+        .product-card h4 { font-size: 0.85rem; margin: 8px 0; color: var(--dark); height: 35px; overflow: hidden; }
+        .price { color: var(--main); font-weight: bold; font-size: 1rem; margin-bottom: 8px; }
+        
+        .btn-order { 
+            background: var(--green); color: white; border: none; padding: 8px; 
+            border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;
+        }
+
+        /* الأقسام والبحث */
+        .search-box { width: 100%; padding: 12px; border: 2px solid var(--main); border-radius: 8px; margin-bottom: 15px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .tab-btn.active { background: var(--main); color: white; }
+
+        /* مودال الوصل والطباعة */
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; padding: 10px; overflow-y: auto; }
+        .modal-content { background:white; max-width:500px; margin: 20px auto; padding:20px; border-radius:10px; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #printableBon, #printableBon * { visibility: visible; }
+            #printableBon { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+        }
+
+        .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--green); color: white; padding: 12px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1000; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.9rem; }
+        .qty-btn { background: #eee; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<div id="loader"><div class="spin"></div><h3>جاري التحميل...</h3></div>
-
 <div class="container">
-    <h2 style="text-align:center; color:var(--main); margin-top:0;">HA EXPERT</h2>
+    <h2 style="text-align:center; color:var(--main); margin: 0 0 15px 0;">HA EXPERT</h2>
+    
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab(event, 'store')">🛒 المتجر</button>
         <button class="tab-btn" onclick="secureAccess(event)">📦 المدير</button>
     </div>
 
-    <div id="store" class="content active">
-        <input type="text" class="search-box" placeholder="🔍 ابحث هنا..." onkeyup="filterAll(this.value)">
+    <div id="store" class="content" style="display: block;">
+        <input type="text" class="search-box" placeholder="🔍 ابحث عن قطعة..." onkeyup="filterAll(this.value)">
         <div class="store-grid" id="storeBody"></div>
     </div>
 
-    <div id="inventory" class="content">
-        <div style="background:#f9f9f9; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
+    <div id="inventory" class="content" style="display: none;">
+        <div style="background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
             <input type="text" id="name" placeholder="اسم القطعة" style="width:100%; padding:8px; margin-bottom:5px;">
             <input type="text" id="ref" placeholder="المرجع (Ref)" style="width:100%; padding:8px; margin-bottom:5px;">
             <input type="number" id="sell" placeholder="سعر البيع" style="width:100%; padding:8px; margin-bottom:5px;">
-            <input type="number" id="qty" placeholder="الكمية" style="width:100%; padding:8px; margin-bottom:8px;">
-            <input type="file" id="img" accept="image/*" style="width:100%; margin-bottom:8px;">
+            <input type="number" id="qty" placeholder="الكمية" style="width:100%; padding:8px; margin-bottom:10px;">
+            <input type="file" id="img" accept="image/*" style="width:100%; margin-bottom:10px;">
             <button onclick="saveToStock()" style="width:100%; background:var(--blue); color:white; padding:10px; border:none; border-radius:5px;">📥 إضافة</button>
         </div>
         <button onclick="exportData()" style="width:100%; background:var(--dark); color:white; padding:10px; border:none; border-radius:5px;">تصدير stock.json</button>
         <div style="overflow-x:auto; margin-top:15px;">
-            <table>
+            <table id="adminTable">
                 <thead><tr><th>الاسم</th><th>المرجع</th><th>السعر</th><th>الكمية</th><th>حذف</th></tr></thead>
                 <tbody id="stockBody"></tbody>
             </table>
@@ -93,52 +109,31 @@
 </div>
 
 <div class="cart-float" onclick="openBon()">
-    🛒 <span id="cartCount">0</span> قطع | الوصل
+    🛒 <span id="cartCount">0</span> قطع | الوصل 📄
 </div>
 
 <div id="detailsModal" class="modal">
     <div class="modal-content" style="text-align:center;">
-        <button onclick="closeModal('detailsModal')" style="float:left; background:var(--dark); color:white; border:none; padding:5px 15px; cursor:pointer; border-radius:5px;">رجوع ↩</button>
-        <div id="productDetailsBody" style="margin-top:35px;"></div>
+        <button onclick="closeModal('detailsModal')" style="float:left; background:var(--dark); color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">رجوع ↩</button>
+        <div id="productDetailsBody" style="margin-top:40px;"></div>
     </div>
 </div>
 
 <div id="bonModal" class="modal">
     <div class="modal-content">
-        <button class="no-print" onclick="closeModal('bonModal')" style="float:left; background:var(--dark); color:white; border:none; padding:8px 15px; cursor:pointer; border-radius:5px; font-weight:bold;">رجوع ↩</button>
-        
+        <button class="no-print" onclick="closeModal('bonModal')" style="float:left; background:var(--dark); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">رجوع ↩</button>
         <div id="printableBon">
-            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 8px;">
-                <h2 style="margin:0;">HA EXPERT</h2>
-                <p id="bonDate" style="font-size:0.7rem; margin:5px 0;"></p>
-                <div style="margin-top:5px;">
-                    <label style="font-size:0.8rem;">الزبون: </label>
-                    <input type="text" id="customerName" placeholder=".................." style="border:none; border-bottom:1px dashed #333; font-weight:bold; width:150px; background:transparent;">
-                </div>
-            </div>
-
+            <h2 style="text-align:center; border-bottom:2px solid #333; padding-bottom:10px;">HA EXPERT</h2>
+            <p id="bonDate" style="text-align:center; font-size:0.8rem;"></p>
             <table>
-                <thead>
-                    <tr><th>القطعة</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr>
-                </thead>
+                <thead><tr><th>القطعة</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
                 <tbody id="bonItemsBody"></tbody>
-                <tfoot>
-                    <tr style="background:#eee; font-weight:bold;">
-                        <td colspan="3" style="text-align:left;">الإجمالي:</td>
-                        <td id="bonTotal">0</td>
-                    </tr>
-                </tfoot>
+                <tfoot><tr style="background:#eee; font-weight:bold;"><td colspan="3">الإجمالي:</td><td id="bonTotal">0</td></tr></tfoot>
             </table>
-
-            <div style="margin-top: 15px; text-align: center; font-size: 0.7rem; border-top: 1px solid #333; padding-top: 8px;">
-                <p>📍 الجزائر | 📞 0558713665 - 0550461326</p>
-                <p>📧 abdou.autotips@gmail.com</p>
-            </div>
         </div>
-        
-        <div class="no-print" style="margin-top:15px; display: flex; gap: 8px;">
-            <button onclick="window.print()" style="flex:1; background:var(--dark); color:white; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🖨️ طباعة</button>
-            <button onclick="sendWhatsApp()" style="flex:1; background:var(--green); color:white; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">📱 واتساب</button>
+        <div class="no-print" style="margin-top:15px; display:flex; gap:10px;">
+            <button onclick="window.print()" style="flex:1; background:var(--dark); color:white; padding:10px; border-radius:5px; cursor:pointer;">🖨️ طباعة</button>
+            <button onclick="sendWhatsApp()" style="flex:1; background:var(--green); color:white; padding:10px; border-radius:5px; cursor:pointer;">📱 واتساب</button>
         </div>
     </div>
 </div>
@@ -147,111 +142,14 @@
     let stock = [];
     let cart = {};
     const SECRET_KEY = "HA2026";
-    const WHATSAPP_PHONE = "213558713665"; 
+    const WHATSAPP_PHONE = "213558713665";
 
     async function loadStock() {
         try {
             const res = await fetch('stock.json');
-            if (res.ok) stock = await res.json();
-            else stock = JSON.parse(localStorage.getItem('ha_stock')) || [];
+            stock = res.ok ? await res.json() : (JSON.parse(localStorage.getItem('ha_stock')) || []);
         } catch (e) { stock = JSON.parse(localStorage.getItem('ha_stock')) || []; }
-        document.getElementById('loader').style.display = "none";
         updateAll();
-    }
-
-    function showDetails(id) {
-        const item = stock.find(i => i.id == id);
-        document.getElementById('productDetailsBody').innerHTML = `
-            <img src="${item.img || 'https://via.placeholder.com/150'}" style="width:100%; max-height:220px; object-fit:contain; border-radius:10px;">
-            <h3 style="margin:10px 0;">${item.name}</h3>
-            <p><b>المرجع:</b> ${item.ref}</p>
-            <p style="font-size:1.3rem; color:var(--main);"><b>${item.sell} د.ج</b></p>
-            <button onclick="addToCart('${item.id}'); closeModal('detailsModal');" style="width:100%; background:var(--green); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">🛒 إضافة للسلة</button>
-        `;
-        document.getElementById('detailsModal').style.display = "block";
-    }
-
-    function addToCart(id) {
-        if (cart[id]) cart[id].qty += 1;
-        else {
-            const item = stock.find(i => i.id == id);
-            cart[id] = { ...item, qty: 1 };
-        }
-        updateCartCount();
-    }
-
-    function changeQty(id, delta) {
-        if (!cart[id]) return;
-        cart[id].qty += delta;
-        if (cart[id].qty <= 0) delete cart[id];
-        updateCartCount();
-        renderBon();
-    }
-
-    function updateCartCount() {
-        const count = Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
-        document.getElementById('cartCount').innerText = count;
-    }
-
-    function renderBon() {
-        let total = 0;
-        document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
-            const sub = item.sell * item.qty;
-            total += sub;
-            return `
-                <tr>
-                    <td>${item.name}</td>
-                    <td>${item.sell}</td>
-                    <td>
-                        <button class="qty-btn no-print" onclick="changeQty('${item.id}', -1)">-</button>
-                        <span>${item.qty}</span>
-                        <button class="qty-btn no-print" onclick="changeQty('${item.id}', 1)">+</button>
-                    </td>
-                    <td>${sub}</td>
-                </tr>
-            `;
-        }).join('');
-        document.getElementById('bonTotal').innerText = total;
-    }
-
-    function openBon() {
-        if (Object.keys(cart).length === 0) return alert("السلة فارغة!");
-        renderBon();
-        document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
-        document.getElementById('bonModal').style.display = "block";
-    }
-
-    function sendWhatsApp() {
-        let customer = document.getElementById('customerName').value || "زبون";
-        let text = `📦 *وصل طلبية - HA EXPERT*\n👤 *الزبون:* ${customer}\n----------\n`;
-        let total = 0;
-        Object.values(cart).forEach(i => {
-            text += `• ${i.name} | ${i.sell}DA x ${i.qty} = ${i.sell * i.qty}DA\n`;
-            total += i.sell * i.qty;
-        });
-        text += `----------\n💰 *المجموع:* ${total} DA`;
-        window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`);
-    }
-
-    function saveToStock() {
-        const name = document.getElementById('name').value;
-        const ref = document.getElementById('ref').value || '---';
-        const sell = parseFloat(document.getElementById('sell').value) || 0;
-        const qty = parseFloat(document.getElementById('qty').value) || 0;
-        const imgInput = document.getElementById('img');
-        if(!name) return alert("الاسم ضروري");
-        const finalize = (imgData) => {
-            stock.push({ id: 'ID'+Date.now(), name, ref, sell, qty, img: imgData || '' });
-            localStorage.setItem('ha_stock', JSON.stringify(stock));
-            updateAll();
-        };
-        if(imgInput.files[0]) { const r = new FileReader(); r.onload=e=>finalize(e.target.result); r.readAsDataURL(imgInput.files[0]); }
-        else finalize('');
-    }
-
-    function updateAll() {
-        renderStore();
-        renderAdmin();
     }
 
     function renderStore() {
@@ -265,12 +163,54 @@
         `).join('');
     }
 
-    function renderAdmin() {
-        document.getElementById('stockBody').innerHTML = stock.map((item, idx) => `
-            <tr><td>${item.name}</td><td>${item.ref}</td><td>${item.sell}</td><td>${item.qty}</td>
-            <td><button onclick="stock.splice(${idx},1);updateAll();" style="color:red; border:none; background:none; cursor:pointer;">🗑️</button></td></tr>
-        `).join('');
+    function showDetails(id) {
+        const item = stock.find(i => i.id == id);
+        document.getElementById('productDetailsBody').innerHTML = `
+            <img src="${item.img || 'https://via.placeholder.com/150'}" style="width:100%; max-height:250px; object-fit:contain; margin-bottom:15px;">
+            <h3>${item.name}</h3>
+            <p><b>المرجع:</b> ${item.ref}</p>
+            <p style="color:var(--main); font-size:1.5rem;"><b>${item.sell} د.ج</b></p>
+            <button onclick="addToCart('${item.id}'); closeModal('detailsModal');" style="width:100%; background:var(--green); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">🛒 إضافة للسلة</button>
+        `;
+        document.getElementById('detailsModal').style.display = "block";
     }
+
+    function addToCart(id) {
+        if (cart[id]) cart[id].qty += 1;
+        else { const item = stock.find(i => i.id == id); cart[id] = { ...item, qty: 1 }; }
+        updateCartCount();
+    }
+
+    function updateCartCount() {
+        document.getElementById('cartCount').innerText = Object.values(cart).reduce((s, i) => s + i.qty, 0);
+    }
+
+    function renderBon() {
+        let total = 0;
+        document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(i => {
+            total += (i.sell * i.qty);
+            return `<tr><td>${i.name}</td><td>${i.sell}</td><td>
+                <button class="qty-btn no-print" onclick="changeQty('${i.id}', -1)">-</button> ${i.qty} 
+                <button class="qty-btn no-print" onclick="changeQty('${i.id}', 1)">+</button>
+            </td><td>${i.sell * i.qty}</td></tr>`;
+        }).join('');
+        document.getElementById('bonTotal').innerText = total;
+    }
+
+    function changeQty(id, delta) {
+        cart[id].qty += delta;
+        if (cart[id].qty <= 0) delete cart[id];
+        updateCartCount(); renderBon();
+    }
+
+    function openBon() {
+        if (Object.keys(cart).length === 0) return alert("السلة فارغة");
+        renderBon();
+        document.getElementById('bonDate').innerText = new Date().toLocaleString('ar-DZ');
+        document.getElementById('bonModal').style.display = "block";
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
     function switchTab(evt, name) {
         document.querySelectorAll('.content').forEach(c => c.style.display="none");
@@ -279,13 +219,15 @@
         evt.currentTarget.classList.add('active');
     }
 
-    function secureAccess(evt) {
-        if(prompt("كلمة السر:") === SECRET_KEY) switchTab(evt, 'inventory');
-    }
+    function secureAccess(evt) { if(prompt("كلمة السر:") === SECRET_KEY) switchTab(evt, 'inventory'); }
 
-    function exportData() {
-        const b = new Blob([JSON.stringify(stock)], {type:"application/json"});
-        const a = document.createElement("a"); a.href=URL.createObjectURL(b); a.download="stock.json"; a.click();
+    function updateAll() { renderStore(); renderAdmin(); }
+
+    function renderAdmin() {
+        document.getElementById('stockBody').innerHTML = stock.map((item, idx) => `
+            <tr><td>${item.name}</td><td>${item.ref}</td><td>${item.sell}</td><td>${item.qty}</td>
+            <td><button onclick="stock.splice(${idx},1);updateAll();" style="color:red; border:none; background:none; cursor:pointer;">🗑️</button></td></tr>
+        `).join('');
     }
 
     function filterAll(s) {
@@ -295,7 +237,6 @@
         });
     }
 
-    function closeModal(id) { document.getElementById(id).style.display="none"; }
     window.onload = loadStock;
 </script>
 </body>
