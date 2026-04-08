@@ -2,48 +2,59 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v6.0 - Final Print Fix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HA EXPERT v6.1 - Responsive Fix</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --red: #c0392b; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; }
-        .container { max-width: 1000px; background: white; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        /* منع الخروج عن الإطار */
+        * { box-sizing: border-box; }
+        
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 8px; overflow-x: hidden; }
+        
+        .container { max-width: 1000px; background: white; margin: auto; padding: 12px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; }
         
         #loader { text-align:center; padding:50px; background:white; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
         .spin { border: 5px solid #f3f3f3; border-top: 5px solid var(--main); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; cursor: pointer; background: #ddd; font-weight: bold; border-radius: 8px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; width: 100%; }
+        .tab-btn { flex: 1; padding: 10px; border: none; cursor: pointer; background: #ddd; font-weight: bold; border-radius: 8px; font-size: 0.9rem; }
         .tab-btn.active { background: var(--main); color: white; }
-        .content { display: none; }
+        
+        .content { display: none; width: 100%; }
         .content.active { display: block; }
         
-        .search-box { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid var(--main); border-radius: 8px; box-sizing: border-box; }
-        .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-        .product-card { border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; background: white; cursor: pointer; }
-        .product-card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; }
-        .price { color: var(--main); font-weight: bold; }
+        .search-box { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid var(--main); border-radius: 8px; font-size: 1rem; }
+        
+        /* تصحيح شبكة المنتجات */
+        .store-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
+        
+        .product-card { border: 1px solid #eee; border-radius: 10px; padding: 8px; text-align: center; background: white; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
+        .product-card h4 { font-size: 0.8rem; margin: 5px 0; height: 32px; overflow: hidden; }
+        .price { color: var(--main); font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; }
+        
+        .btn-order { width: 100%; background: var(--green); color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
 
+        /* مودالات */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; overflow-y: auto; padding: 10px; }
-        .modal-content { background:white; max-width:600px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; }
+        .modal-content { background:white; max-width:500px; margin: 10px auto; padding:15px; border-radius:12px; position: relative; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.9rem; }
-        .qty-btn { background: #f0f0f0; border: 1px solid #ccc; padding: 4px 10px; cursor: pointer; border-radius: 5px; font-weight: bold; margin: 0 5px; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 0.8rem; }
+        .qty-btn { background: #f0f0f0; border: 1px solid #ccc; padding: 5px 12px; cursor: pointer; border-radius: 5px; font-weight: bold; }
 
-        /* PRINT LOGIC - حل مشكلة الصفحات */
         @media print {
             @page { size: portrait; margin: 0; }
             html, body { height: 100vh; overflow: hidden !important; margin: 0 !important; padding: 0 !important; }
             .container, .tabs, .cart-float, .no-print, #loader, .modal-content > button, .qty-btn { display: none !important; }
-            #bonModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white !important; display: block !important; margin: 0; padding: 0; z-index: 9999; }
-            .modal-content { max-width: 100% !important; margin: 0 !important; padding: 20px !important; border: none !important; box-shadow: none !important; }
+            #bonModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white !important; display: block !important; z-index: 9999; }
+            .modal-content { max-width: 100% !important; margin: 0 !important; padding: 15px !important; border: none !important; }
             #printableBon { width: 100%; display: block !important; }
-            .print-only-inline { display: inline-block !important; }
         }
 
-        .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--green); color: white; padding: 12px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1500; }
+        .cart-float { position: fixed; bottom: 15px; left: 15px; background: var(--green); color: white; padding: 10px 18px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1500; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -51,27 +62,27 @@
 <div id="loader"><div class="spin"></div><h3>جاري التحميل...</h3></div>
 
 <div class="container">
-    <h2 style="text-align:center; color:var(--main);">HA EXPERT</h2>
+    <h2 style="text-align:center; color:var(--main); margin-top:0;">HA EXPERT</h2>
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab(event, 'store')">🛒 المتجر</button>
         <button class="tab-btn" onclick="secureAccess(event)">📦 المدير</button>
     </div>
 
     <div id="store" class="content active">
-        <input type="text" class="search-box" placeholder="🔍 ابحث بالاسم أو المرجع..." onkeyup="filterAll(this.value)">
+        <input type="text" class="search-box" placeholder="🔍 ابحث هنا..." onkeyup="filterAll(this.value)">
         <div class="store-grid" id="storeBody"></div>
     </div>
 
     <div id="inventory" class="content">
-        <div style="background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
+        <div style="background:#f9f9f9; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
             <input type="text" id="name" placeholder="اسم القطعة" style="width:100%; padding:8px; margin-bottom:5px;">
             <input type="text" id="ref" placeholder="المرجع (Ref)" style="width:100%; padding:8px; margin-bottom:5px;">
             <input type="number" id="sell" placeholder="سعر البيع" style="width:100%; padding:8px; margin-bottom:5px;">
-            <input type="number" id="qty" placeholder="الكمية" style="width:100%; padding:8px; margin-bottom:10px;">
-            <input type="file" id="img" accept="image/*" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="qty" placeholder="الكمية" style="width:100%; padding:8px; margin-bottom:8px;">
+            <input type="file" id="img" accept="image/*" style="width:100%; margin-bottom:8px;">
             <button onclick="saveToStock()" style="width:100%; background:var(--blue); color:white; padding:10px; border:none; border-radius:5px;">📥 إضافة</button>
         </div>
-        <button onclick="exportData()" style="width:100%; background:var(--dark); color:white; padding:10px; border:none; border-radius:5px;">حفظ وتصدير stock.json</button>
+        <button onclick="exportData()" style="width:100%; background:var(--dark); color:white; padding:10px; border:none; border-radius:5px;">تصدير stock.json</button>
         <div style="overflow-x:auto; margin-top:15px;">
             <table>
                 <thead><tr><th>الاسم</th><th>المرجع</th><th>السعر</th><th>الكمية</th><th>حذف</th></tr></thead>
@@ -82,28 +93,27 @@
 </div>
 
 <div class="cart-float" onclick="openBon()">
-    🛒 <span id="cartCount">0</span> قطع | الوصل 📄
+    🛒 <span id="cartCount">0</span> قطع | الوصل
 </div>
 
 <div id="detailsModal" class="modal">
     <div class="modal-content" style="text-align:center;">
         <button onclick="closeModal('detailsModal')" style="float:left; background:var(--dark); color:white; border:none; padding:5px 15px; cursor:pointer; border-radius:5px;">رجوع ↩</button>
-        <div id="productDetailsBody" style="margin-top:40px;"></div>
+        <div id="productDetailsBody" style="margin-top:35px;"></div>
     </div>
 </div>
 
 <div id="bonModal" class="modal">
     <div class="modal-content">
-        <button class="no-print" onclick="closeModal('bonModal')" style="float:left; background:var(--dark); color:white; border:none; padding:8px 20px; cursor:pointer; border-radius:5px; font-weight:bold;">رجوع ↩</button>
+        <button class="no-print" onclick="closeModal('bonModal')" style="float:left; background:var(--dark); color:white; border:none; padding:8px 15px; cursor:pointer; border-radius:5px; font-weight:bold;">رجوع ↩</button>
         
         <div id="printableBon">
-            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px;">
-                <h1 style="margin:0;">HA EXPERT</h1>
-                <p style="margin:2px 0;">قطع غيار السيارات الأصلية</p>
-                <p id="bonDate" style="font-size:0.8rem; margin:5px 0;"></p>
-                <div style="margin-top:10px;">
-                    <label>الزبون: </label>
-                    <input type="text" id="customerName" placeholder=".................." style="border:none; border-bottom:1px dashed #333; font-weight:bold; width:200px; background:transparent;">
+            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 8px;">
+                <h2 style="margin:0;">HA EXPERT</h2>
+                <p id="bonDate" style="font-size:0.7rem; margin:5px 0;"></p>
+                <div style="margin-top:5px;">
+                    <label style="font-size:0.8rem;">الزبون: </label>
+                    <input type="text" id="customerName" placeholder=".................." style="border:none; border-bottom:1px dashed #333; font-weight:bold; width:150px; background:transparent;">
                 </div>
             </div>
 
@@ -113,22 +123,22 @@
                 </thead>
                 <tbody id="bonItemsBody"></tbody>
                 <tfoot>
-                    <tr style="background:#eee; font-weight:bold; font-size:1.1rem;">
-                        <td colspan="3" style="text-align:left;">الإجمالي النهائي (د.ج):</td>
+                    <tr style="background:#eee; font-weight:bold;">
+                        <td colspan="3" style="text-align:left;">الإجمالي:</td>
                         <td id="bonTotal">0</td>
                     </tr>
                 </tfoot>
             </table>
 
-            <div style="margin-top: 20px; text-align: center; font-size: 0.8rem; border-top: 1px solid #333; padding-top: 10px;">
+            <div style="margin-top: 15px; text-align: center; font-size: 0.7rem; border-top: 1px solid #333; padding-top: 8px;">
                 <p>📍 الجزائر | 📞 0558713665 - 0550461326</p>
                 <p>📧 abdou.autotips@gmail.com</p>
             </div>
         </div>
         
-        <div class="no-print" style="margin-top:20px; display: flex; gap: 10px;">
-            <button onclick="window.print()" style="flex:1; background:var(--dark); color:white; padding:12px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🖨️ طباعة</button>
-            <button onclick="sendWhatsApp()" style="flex:1; background:var(--green); color:white; padding:12px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">📱 واتساب</button>
+        <div class="no-print" style="margin-top:15px; display: flex; gap: 8px;">
+            <button onclick="window.print()" style="flex:1; background:var(--dark); color:white; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🖨️ طباعة</button>
+            <button onclick="sendWhatsApp()" style="flex:1; background:var(--green); color:white; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">📱 واتساب</button>
         </div>
     </div>
 </div>
@@ -152,11 +162,11 @@
     function showDetails(id) {
         const item = stock.find(i => i.id == id);
         document.getElementById('productDetailsBody').innerHTML = `
-            <img src="${item.img || 'https://via.placeholder.com/150'}" style="width:100%; max-height:250px; object-fit:contain; border-radius:10px;">
-            <h2 style="color:var(--dark);">${item.name}</h2>
-            <p style="font-size:1.1rem;"><b>المرجع (Ref):</b> ${item.ref}</p>
-            <p style="font-size:1.5rem; color:var(--main);"><b>السعر:</b> ${item.sell} د.ج</p>
-            <button onclick="addToCart('${item.id}'); closeModal('detailsModal');" style="width:100%; background:var(--green); color:white; padding:12px; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">🛒 إضافة للسلة</button>
+            <img src="${item.img || 'https://via.placeholder.com/150'}" style="width:100%; max-height:220px; object-fit:contain; border-radius:10px;">
+            <h3 style="margin:10px 0;">${item.name}</h3>
+            <p><b>المرجع:</b> ${item.ref}</p>
+            <p style="font-size:1.3rem; color:var(--main);"><b>${item.sell} د.ج</b></p>
+            <button onclick="addToCart('${item.id}'); closeModal('detailsModal');" style="width:100%; background:var(--green); color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">🛒 إضافة للسلة</button>
         `;
         document.getElementById('detailsModal').style.display = "block";
     }
@@ -207,7 +217,7 @@
     function openBon() {
         if (Object.keys(cart).length === 0) return alert("السلة فارغة!");
         renderBon();
-        document.getElementById('bonDate').innerText = "بتاريخ: " + new Date().toLocaleString('ar-DZ');
+        document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
         document.getElementById('bonModal').style.display = "block";
     }
 
@@ -248,8 +258,9 @@
         document.getElementById('storeBody').innerHTML = stock.map(item => `
             <div class="product-card" onclick="showDetails('${item.id}')">
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
-                <h4 style="font-size:0.9rem; margin:5px 0;">${item.name}</h4>
+                <h4>${item.name}</h4>
                 <div class="price">${item.sell} د.ج</div>
+                <button class="btn-order" onclick="event.stopPropagation(); addToCart('${item.id}')">+ طلب</button>
             </div>
         `).join('');
     }
@@ -279,7 +290,9 @@
 
     function filterAll(s) {
         let val = s.toLowerCase();
-        document.querySelectorAll('.product-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(val) ? "" : "none");
+        document.querySelectorAll('.product-card').forEach(c => {
+            c.style.display = c.innerText.toLowerCase().includes(val) ? "" : "none";
+        });
     }
 
     function closeModal(id) { document.getElementById(id).style.display="none"; }
