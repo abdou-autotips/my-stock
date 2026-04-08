@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v7.2</title>
+    <title>HA EXPERT v7.3 - Final Fix</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --bg: #f4f7f6; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); margin: 0; padding: 10px; }
-        .container { max-width: 1100px; background: white; margin: auto; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding-bottom: 100px; }
+        .container { max-width: 1100px; background: white; margin: auto; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding-bottom: 110px; }
         
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 14px; border: none; background: #e0e0e0; border-radius: 8px; cursor: pointer; font-weight: bold; }
@@ -21,24 +21,13 @@
         .admin-section { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
         .admin-section input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; }
 
+        .btn-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-row button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 0.85rem; }
         
-        /* الزر الأخضر بعيد على الجدول تماماً */
-        .cart-float { 
-            position: fixed; 
-            bottom: 30px; 
-            left: 30px; 
-            background: var(--green); 
-            color: white; 
-            padding: 15px 25px; 
-            border-radius: 50px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3); 
-            z-index: 9999; 
-            border: 2px solid white;
-        }
+        .cart-float { position: fixed; bottom: 25px; left: 25px; background: var(--green); color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 9999; border: 2px solid white; }
 
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; padding: 10px; }
         .modal-content { background:white; max-width:600px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
@@ -49,7 +38,7 @@
 <body>
 
 <div class="container">
-    <h1 style="text-align:center; color:var(--main); margin-top:0;">HA EXPERT</h1>
+    <h1 style="text-align:center; color:var(--main); margin-top:0;">HA EXPERT v7.3</h1>
     
     <div class="tabs no-print">
         <button class="tab-btn active" onclick="switchTab(event, 'store')">🛒 المتجر</button>
@@ -63,7 +52,7 @@
 
     <div id="inventory" class="content" style="display: none;">
         <div class="admin-section">
-            <h4 style="margin:0 0 10px 0;">إضافة منتج:</h4>
+            <h4 style="margin:0 0 10px 0;">إضافة منتج جديد:</h4>
             <input type="text" id="p_name" placeholder="اسم القطعة">
             <input type="text" id="p_ref" placeholder="المرجع (Ref)">
             <div style="display:flex; gap:10px;">
@@ -72,7 +61,16 @@
             </div>
             <input type="number" id="p_qty" placeholder="الكمية">
             <input type="file" id="p_img" accept="image/*">
-            <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📥 إضافة للمخزن</button>
+            <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold;">📥 إضافة للمخزن</button>
+        </div>
+
+        <div class="admin-section">
+            <h4 style="margin:0 0 10px 0;">أدوات المخزن (JSON):</h4>
+            <div class="btn-row">
+                <button onclick="exportJSON()" style="background:var(--dark);">💾 تصدير (Backup)</button>
+                <button onclick="document.getElementById('fileIn').click()" style="background:var(--green);">📂 تحميل (Import JSON)</button>
+                <input type="file" id="fileIn" style="display:none" onchange="importJSON(event)">
+            </div>
         </div>
 
         <div class="admin-section">
@@ -109,7 +107,7 @@
                 <tfoot><tr style="background:#eee; font-weight:bold;"><td colspan="3">الإجمالي:</td><td id="bonTotal">0</td></tr></tfoot>
             </table>
         </div>
-        <button class="no-print" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:15px; cursor:pointer;" onclick="window.print()">🖨️ طباعة</button>
+        <button class="no-print" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:15px;" onclick="window.print()">🖨️ طباعة</button>
     </div>
 </div>
 
@@ -153,7 +151,7 @@
             <div class="product-card">
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
                 <h4>${item.name}</h4>
-                <div class="price">${item.sell} د.ج</div>
+                <div style="color:var(--main); font-weight:bold; margin-bottom:10px;">${item.sell} د.ج</div>
                 <button onclick="addToCart('${item.id}')" style="width:100%; padding:10px; background:var(--green); color:white; border:none; border-radius:6px; cursor:pointer;">+ طلب</button>
             </div>
         `).join('');
@@ -164,7 +162,7 @@
                 <td style="color:red">${item.buy}</td>
                 <td><input type="number" style="width:80px" value="${item.sell}" onchange="updateStockPrice(${i}, this.value)"></td>
                 <td>${item.qty}</td>
-                <td><button onclick="stock.splice(${i},1);save()">🗑️</button></td>
+                <td><button onclick="stock.splice(${i},1);save()" style="background:none; border:none; cursor:pointer;">🗑️</button></td>
             </tr>
         `).join('');
         document.getElementById('store_phone').value = contact.phone;
@@ -177,6 +175,7 @@
         updateCartCount();
     }
     function updateCartCount() { document.getElementById('cartCount').innerText = Object.values(cart).reduce((s, i) => s + i.qty, 0); }
+    
     function openBon() {
         if (Object.keys(cart).length === 0) return alert("السلة فارغة!");
         let total = 0;
@@ -189,6 +188,7 @@
         document.getElementById('bonContact').innerText = `هاتف: ${contact.phone || '____'} | إيميل: ${contact.email || '____'}`;
         document.getElementById('bonModal').style.display = "block";
     }
+
     function closeModal() { document.getElementById('bonModal').style.display = "none"; }
     function switchTab(evt, name) {
         document.querySelectorAll('.content').forEach(c => c.style.display="none");
@@ -201,6 +201,13 @@
         document.querySelectorAll('.product-card').forEach(c => {
             c.style.display = c.innerText.toLowerCase().includes(v.toLowerCase()) ? "" : "none";
         });
+    }
+
+    function exportJSON() {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(stock)], {type:'application/json'})); a.download = 'HA_Stock_Backup.json'; a.click();
+    }
+    function importJSON(e) {
+        const r = new FileReader(); r.onload = (ev) => { stock = JSON.parse(ev.target.result); save(); alert("تم تحميل المخزن بنجاح!"); }; r.readAsText(e.target.files[0]);
     }
     window.onload = render;
 </script>
