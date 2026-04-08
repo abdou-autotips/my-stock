@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v7.3 - Final Fix</title>
+    <title>HA EXPERT v7.5 - Final Version</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --bg: #f4f7f6; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -32,13 +32,17 @@
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; padding: 10px; }
         .modal-content { background:white; max-width:600px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
 
-        @media print { .no-print { display: none !important; } .modal { display: block; position: absolute; top:0; left:0; width:100%; } }
+        /* أزرار الزائد والناقص في البون */
+        .qty-btn { background: #eee; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-weight: bold; border-radius: 4px; margin: 0 2px; }
+        .qty-btn:hover { background: #ddd; }
+
+        @media print { .no-print { display: none !important; } .modal { display: block; position: absolute; top:0; left:0; width:100%; } .qty-btn { display: none; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="text-align:center; color:var(--main); margin-top:0;">HA EXPERT v7.3</h1>
+    <h1 style="text-align:center; color:var(--main); margin-top:0;">HA EXPERT</h1>
     
     <div class="tabs no-print">
         <button class="tab-btn active" onclick="switchTab(event, 'store')">🛒 المتجر</button>
@@ -64,17 +68,14 @@
             <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold;">📥 إضافة للمخزن</button>
         </div>
 
-        <div class="admin-section">
-            <h4 style="margin:0 0 10px 0;">أدوات المخزن (JSON):</h4>
-            <div class="btn-row">
-                <button onclick="exportJSON()" style="background:var(--dark);">💾 تصدير (Backup)</button>
-                <button onclick="document.getElementById('fileIn').click()" style="background:var(--green);">📂 تحميل (Import JSON)</button>
-                <input type="file" id="fileIn" style="display:none" onchange="importJSON(event)">
-            </div>
+        <div class="btn-row">
+            <button onclick="document.getElementById('fileIn').click()" style="background:var(--green);">📂 تحميل مخزن</button>
+            <button onclick="exportJSON()" style="background:var(--dark);">💾 نسخة احتياطية (Backup)</button>
+            <input type="file" id="fileIn" style="display:none" onchange="importJSON(event)">
         </div>
 
         <div class="admin-section">
-            <h4 style="margin:0 0 10px 0;">معلومات الوصل:</h4>
+            <h4 style="margin:0 0 10px 0;">معلومات الاتصال:</h4>
             <input type="text" id="store_phone" placeholder="رقم الهاتف" onchange="saveContactInfo()">
             <input type="email" id="store_email" placeholder="البريد الإلكتروني" onchange="saveContactInfo()">
         </div>
@@ -174,14 +175,33 @@
         if (cart[id]) cart[id].qty += 1; else cart[id] = { ...item, qty: 1 };
         updateCartCount();
     }
+
+    function changeQtyInCart(id, delta) {
+        if (cart[id]) {
+            cart[id].qty += delta;
+            if (cart[id].qty <= 0) delete cart[id];
+            updateCartCount();
+            openBon(); // تحديث العرض في المودال
+        }
+    }
+
     function updateCartCount() { document.getElementById('cartCount').innerText = Object.values(cart).reduce((s, i) => s + i.qty, 0); }
     
     function openBon() {
-        if (Object.keys(cart).length === 0) return alert("السلة فارغة!");
+        if (Object.keys(cart).length === 0) { closeModal(); return; }
         let total = 0;
         document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
             total += (item.sell * item.qty);
-            return `<tr><td>${item.name}</td><td>${item.sell}</td><td>${item.qty}</td><td>${item.sell * item.qty}</td></tr>`;
+            return `<tr>
+                <td>${item.name}</td>
+                <td>${item.sell}</td>
+                <td>
+                    <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', -1)">-</button>
+                    ${item.qty}
+                    <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', 1)">+</button>
+                </td>
+                <td>${item.sell * item.qty}</td>
+            </tr>`;
         }).join('');
         document.getElementById('bonTotal').innerText = total + " د.ج";
         document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
@@ -207,7 +227,7 @@
         const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(stock)], {type:'application/json'})); a.download = 'HA_Stock_Backup.json'; a.click();
     }
     function importJSON(e) {
-        const r = new FileReader(); r.onload = (ev) => { stock = JSON.parse(ev.target.result); save(); alert("تم تحميل المخزن بنجاح!"); }; r.readAsText(e.target.files[0]);
+        const r = new FileReader(); r.onload = (ev) => { stock = JSON.parse(ev.target.result); save(); alert("تم تحميل المخزن!"); }; r.readAsText(e.target.files[0]);
     }
     window.onload = render;
 </script>
