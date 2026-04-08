@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v7.0 - Final</title>
+    <title>HA EXPERT v7.1 - Professional</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --bg: #f4f7f6; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -21,32 +21,36 @@
         .product-card img { width: 100%; height: 140px; object-fit: contain; border-radius: 8px; background: #fbfbfb; }
         .price { color: var(--main); font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; }
         
-        /* Admin Form */
-        .admin-form { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
-        .admin-form input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; }
+        /* Admin */
+        .admin-section { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
+        .admin-section input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; }
 
         /* Table */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 0.85rem; }
         th { background: #f4f4f4; }
 
-        /* Floating Cart Button */
+        /* Editable inputs in tables */
+        .table-input { width: 80px; padding: 5px; border: 1px dashed var(--blue); text-align: center; font-weight: bold; }
+
+        /* Floating Cart */
         .cart-float { position: fixed; bottom: 25px; left: 25px; background: var(--green); color: white; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 1000; border: 2px solid white; }
 
         /* Modal */
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; padding: 10px; }
-        .modal-content { background:white; max-width:600px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; overflow-y: auto; max-height: 90vh; }
+        .modal-content { background:white; max-width:600px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
 
-        .qty-btn { background: #eee; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; border-radius: 4px; }
-        .editable-price { width: 70px; padding: 4px; border: 1px dashed var(--blue); text-align: center; font-weight: bold; }
-
-        @media print { .no-print { display: none; } .modal { display: block; position: absolute; top:0; left:0; } }
+        @media print { 
+            .no-print { display: none !important; } 
+            .modal { display: block; position: absolute; top:0; left:0; width: 100%; }
+            .modal-content { border:none; box-shadow:none; width: 100%; max-width: 100%; margin: 0; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="text-align:center; color:var(--main); margin-top:0;">HA EXPERT v7.0</h1>
+    <h1 style="text-align:center; color:var(--main); margin-top:0;">HA EXPERT</h1>
     
     <div class="tabs no-print">
         <button class="tab-btn active" onclick="switchTab(event, 'store')">🛒 المتجر</button>
@@ -54,30 +58,39 @@
     </div>
 
     <div id="store" class="content">
-        <input type="text" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:15px;" placeholder="🔍 ابحث عن قطعة (اسم أو مرجع)..." onkeyup="filterProducts(this.value)">
+        <input type="text" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:15px;" placeholder="🔍 ابحث عن قطعة..." onkeyup="filterProducts(this.value)">
         <div class="store-grid" id="storeBody"></div>
     </div>
 
     <div id="inventory" class="content" style="display: none;">
-        <div class="admin-form">
+        <div class="admin-section">
+            <h4 style="margin-top:0;">إضافة منتج جديد:</h4>
             <input type="text" id="p_name" placeholder="اسم القطعة">
             <input type="text" id="p_ref" placeholder="المرجع (Ref)">
             <div style="display:flex; gap:10px;">
                 <input type="number" id="p_buy" placeholder="سعر الشراء">
                 <input type="number" id="p_sell" placeholder="سعر البيع">
             </div>
-            <input type="number" id="p_qty" placeholder="الكمية المتوفرة">
+            <input type="number" id="p_qty" placeholder="الكمية">
             <input type="file" id="p_img" accept="image/*">
             <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">📥 إضافة للمخزن</button>
         </div>
+
+        <div class="admin-section">
+            <h4 style="margin-top:0;">معلومات الاتصال في الوصل:</h4>
+            <input type="text" id="store_phone" placeholder="رقم الهاتف" onchange="saveContactInfo()">
+            <input type="email" id="store_email" placeholder="البريد الإلكتروني" onchange="saveContactInfo()">
+        </div>
+
         <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <button onclick="exportJSON()" style="flex:1; padding:10px; background:var(--dark); color:white; border:none; border-radius:6px; cursor:pointer;">💾 نسخة احتياطية</button>
-            <button onclick="document.getElementById('fileIn').click()" style="flex:1; padding:10px; background:var(--green); color:white; border:none; border-radius:6px; cursor:pointer;">📂 تحميل مخزن</button>
+            <button onclick="exportJSON()" style="flex:1; padding:10px; background:var(--dark); color:white; border:none; border-radius:6px;">💾 نسخة احتياطية</button>
+            <button onclick="document.getElementById('fileIn').click()" style="flex:1; padding:10px; background:var(--green); color:white; border:none; border-radius:6px;">📂 تحميل مخزن</button>
             <input type="file" id="fileIn" style="display:none" onchange="importJSON(event)">
         </div>
+
         <div style="overflow-x:auto;">
             <table>
-                <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع</th><th>مخزون</th><th>حذف</th></tr></thead>
+                <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع (قابل للتعديل)</th><th>مخزون</th><th>حذف</th></tr></thead>
                 <tbody id="adminTableBody"></tbody>
             </table>
         </div>
@@ -90,15 +103,19 @@
 
 <div id="bonModal" class="modal">
     <div class="modal-content">
-        <button class="no-print" onclick="closeModal()" style="float:left; cursor:pointer;">إغلاق X</button>
+        <button class="no-print" onclick="closeModal()" style="float:left; cursor:pointer;">X</button>
         <div id="printableBon">
-            <h2 style="text-align:center;">HA EXPERT</h2>
-            <p id="bonDate" style="text-align:center; font-size:0.8rem;"></p>
+            <div style="text-align:center; border-bottom: 2px solid var(--main); padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 style="margin:0; color:var(--main);">HA EXPERT</h2>
+                <p id="bonContact" style="margin:5px 0; font-size:0.9rem; font-weight:bold;"></p>
+                <p id="bonDate" style="margin:0; font-size:0.8rem; color:#666;"></p>
+            </div>
             <table>
                 <thead><tr><th>القطعة</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
                 <tbody id="bonItemsBody"></tbody>
-                <tfoot><tr style="background:#eee; font-weight:bold;"><td colspan="3">الإجمالي:</td><td id="bonTotal">0</td></tr></tfoot>
+                <tfoot><tr style="background:#eee; font-weight:bold;"><td colspan="3">الإجمالي النهائي:</td><td id="bonTotal">0</td></tr></tfoot>
             </table>
+            <p style="text-align:center; margin-top:20px; font-size:0.8rem;" class="only-print">شكراً لثقتكم بنا!</p>
         </div>
         <button class="no-print" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:15px; cursor:pointer;" onclick="window.print()">🖨️ طباعة الوصل</button>
     </div>
@@ -106,9 +123,26 @@
 
 <script>
     let stock = JSON.parse(localStorage.getItem('ha_stock')) || [];
+    let contact = JSON.parse(localStorage.getItem('ha_contact')) || { phone: '', email: '' };
     let cart = {};
 
-    function save() { localStorage.setItem('ha_stock', JSON.stringify(stock)); render(); }
+    function save() { 
+        localStorage.setItem('ha_stock', JSON.stringify(stock)); 
+        render(); 
+    }
+
+    function saveContactInfo() {
+        contact.phone = document.getElementById('store_phone').value;
+        contact.email = document.getElementById('store_email').value;
+        localStorage.setItem('ha_contact', JSON.stringify(contact));
+    }
+
+    // تعديل سعر البيع مباشرة من جدول المدير
+    function updateStockPrice(index, newVal) {
+        stock[index].sell = parseFloat(newVal) || 0;
+        localStorage.setItem('ha_stock', JSON.stringify(stock));
+        // لا نحتاج لإعادة render كاملة لتجنب فقدان التركيز (Focus)
+    }
 
     function addProduct() {
         const name = document.getElementById('p_name').value;
@@ -132,6 +166,7 @@
     }
 
     function render() {
+        // المتجر
         document.getElementById('storeBody').innerHTML = stock.map(item => `
             <div class="product-card">
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
@@ -141,10 +176,21 @@
             </div>
         `).join('');
 
+        // جدول المدير
         document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => `
-            <tr><td>${item.name}</td><td>${item.ref}</td><td style="color:red">${item.buy}</td><td style="color:green">${item.sell}</td><td>${item.qty}</td>
-            <td><button onclick="stock.splice(${i},1);save()">🗑️</button></td></tr>
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.ref}</td>
+                <td style="color:red">${item.buy}</td>
+                <td><input type="number" class="table-input" value="${item.sell}" onchange="updateStockPrice(${i}, this.value)"></td>
+                <td>${item.qty}</td>
+                <td><button onclick="stock.splice(${i},1);save()" style="background:none; border:none; cursor:pointer;">🗑️</button></td>
+            </tr>
         `).join('');
+
+        // تعبئة معلومات الاتصال
+        document.getElementById('store_phone').value = contact.phone;
+        document.getElementById('store_email').value = contact.email;
     }
 
     function addToCart(id) {
@@ -160,32 +206,18 @@
 
     function openBon() {
         if (Object.keys(cart).length === 0) return alert("السلة فارغة!");
-        updateBonTable();
-        document.getElementById('bonDate').innerText = new Date().toLocaleString('ar-DZ');
+        let total = 0;
+        document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
+            total += (item.sell * item.qty);
+            return `<tr><td>${item.name}</td><td>${item.sell}</td><td>${item.qty}</td><td>${item.sell * item.qty}</td></tr>`;
+        }).join('');
+        
+        document.getElementById('bonTotal').innerText = total + " د.ج";
+        document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
+        document.getElementById('bonContact').innerText = `هاتف: ${contact.phone || '____'} | إيميل: ${contact.email || '____'}`;
         document.getElementById('bonModal').style.display = "block";
     }
 
-    function updateBonTable() {
-        let total = 0;
-        document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
-            const sum = item.sell * item.qty;
-            total += sum;
-            return `<tr>
-                <td>${item.name}</td>
-                <td><input type="number" class="editable-price no-print" value="${item.sell}" onchange="updateCartPrice('${item.id}', this.value)"> <span class="only-print">${item.sell}</span></td>
-                <td>
-                    <button class="qty-btn no-print" onclick="changeQty('${item.id}', -1)">-</button>
-                    ${item.qty}
-                    <button class="qty-btn no-print" onclick="changeQty('${item.id}', 1)">+</button>
-                </td>
-                <td>${sum}</td>
-            </tr>`;
-        }).join('');
-        document.getElementById('bonTotal').innerText = total + " د.ج";
-    }
-
-    function updateCartPrice(id, val) { if(cart[id]) { cart[id].sell = parseFloat(val) || 0; updateBonTable(); } }
-    function changeQty(id, delta) { if(cart[id]) { cart[id].qty += delta; if(cart[id].qty <= 0) delete cart[id]; updateCartCount(); updateBonTable(); } }
     function closeModal() { document.getElementById('bonModal').style.display = "none"; }
     function switchTab(evt, name) {
         document.querySelectorAll('.content').forEach(c => c.style.display="none");
