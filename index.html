@@ -3,48 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v7.1 - Professional</title>
+    <title>HA EXPERT v7.2</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --bg: #f4f7f6; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); margin: 0; padding: 10px; }
-        .container { max-width: 1100px; background: white; margin: auto; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding-bottom: 90px; }
+        .container { max-width: 1100px; background: white; margin: auto; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding-bottom: 100px; }
         
-        /* Tabs */
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 14px; border: none; background: #e0e0e0; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .tab-btn.active { background: var(--main); color: white; }
 
-        /* Store */
         .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
         .product-card { border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; background: #fff; display: flex; flex-direction: column; justify-content: space-between; min-height: 290px; }
-        .product-card img { width: 100%; height: 140px; object-fit: contain; border-radius: 8px; background: #fbfbfb; }
-        .price { color: var(--main); font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; }
+        .product-card img { width: 100%; height: 140px; object-fit: contain; border-radius: 8px; }
         
-        /* Admin */
         .admin-section { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
         .admin-section input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; }
 
-        /* Table */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 0.85rem; }
-        th { background: #f4f4f4; }
+        
+        /* الزر الأخضر بعيد على الجدول تماماً */
+        .cart-float { 
+            position: fixed; 
+            bottom: 30px; 
+            left: 30px; 
+            background: var(--green); 
+            color: white; 
+            padding: 15px 25px; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3); 
+            z-index: 9999; 
+            border: 2px solid white;
+        }
 
-        /* Editable inputs in tables */
-        .table-input { width: 80px; padding: 5px; border: 1px dashed var(--blue); text-align: center; font-weight: bold; }
-
-        /* Floating Cart */
-        .cart-float { position: fixed; bottom: 25px; left: 25px; background: var(--green); color: white; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 1000; border: 2px solid white; }
-
-        /* Modal */
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; padding: 10px; }
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; padding: 10px; }
         .modal-content { background:white; max-width:600px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
 
-        @media print { 
-            .no-print { display: none !important; } 
-            .modal { display: block; position: absolute; top:0; left:0; width: 100%; }
-            .modal-content { border:none; box-shadow:none; width: 100%; max-width: 100%; margin: 0; }
-        }
+        @media print { .no-print { display: none !important; } .modal { display: block; position: absolute; top:0; left:0; width:100%; } }
     </style>
 </head>
 <body>
@@ -64,7 +63,7 @@
 
     <div id="inventory" class="content" style="display: none;">
         <div class="admin-section">
-            <h4 style="margin-top:0;">إضافة منتج جديد:</h4>
+            <h4 style="margin:0 0 10px 0;">إضافة منتج:</h4>
             <input type="text" id="p_name" placeholder="اسم القطعة">
             <input type="text" id="p_ref" placeholder="المرجع (Ref)">
             <div style="display:flex; gap:10px;">
@@ -77,20 +76,14 @@
         </div>
 
         <div class="admin-section">
-            <h4 style="margin-top:0;">معلومات الاتصال في الوصل:</h4>
+            <h4 style="margin:0 0 10px 0;">معلومات الوصل:</h4>
             <input type="text" id="store_phone" placeholder="رقم الهاتف" onchange="saveContactInfo()">
             <input type="email" id="store_email" placeholder="البريد الإلكتروني" onchange="saveContactInfo()">
         </div>
 
-        <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <button onclick="exportJSON()" style="flex:1; padding:10px; background:var(--dark); color:white; border:none; border-radius:6px;">💾 نسخة احتياطية</button>
-            <button onclick="document.getElementById('fileIn').click()" style="flex:1; padding:10px; background:var(--green); color:white; border:none; border-radius:6px;">📂 تحميل مخزن</button>
-            <input type="file" id="fileIn" style="display:none" onchange="importJSON(event)">
-        </div>
-
         <div style="overflow-x:auto;">
             <table>
-                <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع (قابل للتعديل)</th><th>مخزون</th><th>حذف</th></tr></thead>
+                <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع (تعديل)</th><th>مخزون</th><th>حذف</th></tr></thead>
                 <tbody id="adminTableBody"></tbody>
             </table>
         </div>
@@ -103,21 +96,20 @@
 
 <div id="bonModal" class="modal">
     <div class="modal-content">
-        <button class="no-print" onclick="closeModal()" style="float:left; cursor:pointer;">X</button>
+        <button class="no-print" onclick="closeModal()" style="float:left;">X</button>
         <div id="printableBon">
-            <div style="text-align:center; border-bottom: 2px solid var(--main); padding-bottom: 10px; margin-bottom: 15px;">
+            <div style="text-align:center; border-bottom: 2px solid var(--main); padding-bottom:10px;">
                 <h2 style="margin:0; color:var(--main);">HA EXPERT</h2>
-                <p id="bonContact" style="margin:5px 0; font-size:0.9rem; font-weight:bold;"></p>
-                <p id="bonDate" style="margin:0; font-size:0.8rem; color:#666;"></p>
+                <p id="bonContact" style="margin:5px 0; font-size:0.9rem;"></p>
+                <p id="bonDate" style="margin:0; font-size:0.8rem;"></p>
             </div>
             <table>
                 <thead><tr><th>القطعة</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
                 <tbody id="bonItemsBody"></tbody>
-                <tfoot><tr style="background:#eee; font-weight:bold;"><td colspan="3">الإجمالي النهائي:</td><td id="bonTotal">0</td></tr></tfoot>
+                <tfoot><tr style="background:#eee; font-weight:bold;"><td colspan="3">الإجمالي:</td><td id="bonTotal">0</td></tr></tfoot>
             </table>
-            <p style="text-align:center; margin-top:20px; font-size:0.8rem;" class="only-print">شكراً لثقتكم بنا!</p>
         </div>
-        <button class="no-print" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:15px; cursor:pointer;" onclick="window.print()">🖨️ طباعة الوصل</button>
+        <button class="no-print" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:15px; cursor:pointer;" onclick="window.print()">🖨️ طباعة</button>
     </div>
 </div>
 
@@ -126,22 +118,16 @@
     let contact = JSON.parse(localStorage.getItem('ha_contact')) || { phone: '', email: '' };
     let cart = {};
 
-    function save() { 
-        localStorage.setItem('ha_stock', JSON.stringify(stock)); 
-        render(); 
-    }
-
+    function save() { localStorage.setItem('ha_stock', JSON.stringify(stock)); render(); }
     function saveContactInfo() {
         contact.phone = document.getElementById('store_phone').value;
         contact.email = document.getElementById('store_email').value;
         localStorage.setItem('ha_contact', JSON.stringify(contact));
     }
 
-    // تعديل سعر البيع مباشرة من جدول المدير
     function updateStockPrice(index, newVal) {
         stock[index].sell = parseFloat(newVal) || 0;
         localStorage.setItem('ha_stock', JSON.stringify(stock));
-        // لا نحتاج لإعادة render كاملة لتجنب فقدان التركيز (Focus)
     }
 
     function addProduct() {
@@ -151,59 +137,46 @@
         const sell = document.getElementById('p_sell').value || 0;
         const qty = document.getElementById('p_qty').value || 0;
         const imgFile = document.getElementById('p_img').files[0];
-
-        if(!name || !sell) return alert("الاسم والسعر ضروريان!");
-
+        if(!name || !sell) return alert("أدخل البيانات!");
         const saveItem = (img = '') => {
             stock.push({ id: 'ID' + Date.now(), name, ref, buy, sell, qty, img });
             save();
             ['p_name','p_ref','p_buy','p_sell','p_qty','p_img'].forEach(id => document.getElementById(id).value = '');
         };
-
         if(imgFile) {
             const r = new FileReader(); r.onload = (e) => saveItem(e.target.result); r.readAsDataURL(imgFile);
         } else saveItem();
     }
 
     function render() {
-        // المتجر
         document.getElementById('storeBody').innerHTML = stock.map(item => `
             <div class="product-card">
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
                 <h4>${item.name}</h4>
                 <div class="price">${item.sell} د.ج</div>
-                <button onclick="addToCart('${item.id}')" style="width:100%; padding:10px; background:var(--green); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">+ طلب</button>
+                <button onclick="addToCart('${item.id}')" style="width:100%; padding:10px; background:var(--green); color:white; border:none; border-radius:6px; cursor:pointer;">+ طلب</button>
             </div>
         `).join('');
 
-        // جدول المدير
         document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => `
             <tr>
-                <td>${item.name}</td>
-                <td>${item.ref}</td>
+                <td>${item.name}</td><td>${item.ref}</td>
                 <td style="color:red">${item.buy}</td>
-                <td><input type="number" class="table-input" value="${item.sell}" onchange="updateStockPrice(${i}, this.value)"></td>
+                <td><input type="number" style="width:80px" value="${item.sell}" onchange="updateStockPrice(${i}, this.value)"></td>
                 <td>${item.qty}</td>
-                <td><button onclick="stock.splice(${i},1);save()" style="background:none; border:none; cursor:pointer;">🗑️</button></td>
+                <td><button onclick="stock.splice(${i},1);save()">🗑️</button></td>
             </tr>
         `).join('');
-
-        // تعبئة معلومات الاتصال
         document.getElementById('store_phone').value = contact.phone;
         document.getElementById('store_email').value = contact.email;
     }
 
     function addToCart(id) {
         const item = stock.find(p => p.id == id);
-        if (cart[id]) cart[id].qty += 1;
-        else cart[id] = { ...item, qty: 1 };
+        if (cart[id]) cart[id].qty += 1; else cart[id] = { ...item, qty: 1 };
         updateCartCount();
     }
-
-    function updateCartCount() {
-        document.getElementById('cartCount').innerText = Object.values(cart).reduce((s, i) => s + i.qty, 0);
-    }
-
+    function updateCartCount() { document.getElementById('cartCount').innerText = Object.values(cart).reduce((s, i) => s + i.qty, 0); }
     function openBon() {
         if (Object.keys(cart).length === 0) return alert("السلة فارغة!");
         let total = 0;
@@ -211,13 +184,11 @@
             total += (item.sell * item.qty);
             return `<tr><td>${item.name}</td><td>${item.sell}</td><td>${item.qty}</td><td>${item.sell * item.qty}</td></tr>`;
         }).join('');
-        
         document.getElementById('bonTotal').innerText = total + " د.ج";
         document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
         document.getElementById('bonContact').innerText = `هاتف: ${contact.phone || '____'} | إيميل: ${contact.email || '____'}`;
         document.getElementById('bonModal').style.display = "block";
     }
-
     function closeModal() { document.getElementById('bonModal').style.display = "none"; }
     function switchTab(evt, name) {
         document.querySelectorAll('.content').forEach(c => c.style.display="none");
@@ -230,12 +201,6 @@
         document.querySelectorAll('.product-card').forEach(c => {
             c.style.display = c.innerText.toLowerCase().includes(v.toLowerCase()) ? "" : "none";
         });
-    }
-    function exportJSON() {
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(stock)], {type:'application/json'})); a.download = 'HA_Stock.json'; a.click();
-    }
-    function importJSON(e) {
-        const r = new FileReader(); r.onload = (ev) => { stock = JSON.parse(ev.target.result); save(); alert("تم التحميل!"); }; r.readAsText(e.target.files[0]);
     }
     window.onload = render;
 </script>
