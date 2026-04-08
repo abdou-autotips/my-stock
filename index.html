@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v5.3 - Pro Edition</title>
+    <title>HA EXPERT v5.4 - نظام التسيير الاحترافي</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --red: #c0392b; --orange: #f39c12; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; }
         .container { max-width: 1200px; background: white; margin: auto; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
-        /* شاشة التحميل */
         #loader { text-align:center; padding:50px; background:white; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
         .spin { border: 5px solid #f3f3f3; border-top: 5px solid var(--main); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -25,31 +24,27 @@
         .product-card { border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; background: white; position: relative; }
         .product-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
         .out-of-stock { filter: grayscale(1); opacity: 0.6; }
-        .stock-badge { position: absolute; top: 5px; left: 5px; background: var(--red); color: white; padding: 2px 5px; border-radius: 5px; font-size: 0.7rem; }
         .price { color: var(--main); font-weight: bold; margin: 5px 0; }
 
         .admin-form { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ddd; }
         .admin-form input { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
         
-        /* السلة الماركة */
         .cart-float { position: fixed; bottom: 20px; left: 20px; background: var(--green); color: white; padding: 12px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000; }
         #bonModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; padding:20px; box-sizing:border-box; }
-        .bon-content { background:white; max-width:650px; margin:auto; padding:20px; border-radius:10px; max-height: 95vh; overflow-y: auto; }
+        .bon-content { background:white; max-width:700px; margin:auto; padding:20px; border-radius:10px; max-height: 95vh; overflow-y: auto; }
         
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #eee; padding: 10px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 0.9rem; }
+        th { background: #f8f9fa; }
         
-        /* أزرار الزيادة والنقصان */
         .qty-btn { background: #eee; border: none; padding: 5px 10px; cursor: pointer; font-weight: bold; border-radius: 3px; }
-        .qty-btn:hover { background: #ddd; }
-
-        .bon-footer { margin-top: 20px; border-top: 2px solid var(--dark); padding-top: 10px; font-size: 0.9rem; text-align: center; }
+        .bon-footer { margin-top: 20px; border-top: 2px solid var(--dark); padding-top: 10px; font-size: 0.8rem; text-align: center; }
 
         @media print { 
             body * { visibility: hidden; } 
             #printableBon, #printableBon * { visibility: visible; } 
             #printableBon { position: absolute; left:0; top:0; width:100%; }
-            .qty-controls { display: none; } /* إخفاء أزرار التحكم عند الطباعة */
+            .qty-controls { display: none; }
         }
     </style>
 </head>
@@ -61,7 +56,7 @@
 </div>
 
 <div class="container">
-    <h2 style="text-align:center; color:var(--main);">HA EXPERT v5.3</h2>
+    <h2 style="text-align:center; color:var(--main);">HA EXPERT v5.4</h2>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab(event, 'store')">🛒 المتجر</button>
@@ -78,21 +73,18 @@
             <input type="text" id="name" placeholder="اسم القطعة">
             <input type="text" id="ref" placeholder="المرجع (Ref)">
             <input type="number" id="sell" placeholder="سعر البيع">
-            <input type="number" id="qty" placeholder="الكمية المتوفرة">
+            <input type="number" id="qty" placeholder="الكمية">
             <input type="file" id="img" accept="image/*">
-            <button onclick="saveToStock()" style="width:100%; background:var(--blue); color:white; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">📥 إضافة للمخزون</button>
+            <button onclick="saveToStock()" style="width:100%; background:var(--blue); color:white; padding:12px; border:none; border-radius:5px; cursor:pointer;">📥 إضافة للمخزون</button>
         </div>
-
         <div style="background:#d4edda; padding:15px; border-radius:10px; margin-bottom:15px; border:1px dashed #28a745;">
-            <strong>📥 دمج السلعة من الملف القديم (Backup):</strong>
-            <input type="file" id="importFile" accept=".json" onchange="importOldStock(event)" style="margin-top:10px; width:100%;">
+            <strong>📥 استيراد ملف قديم:</strong>
+            <input type="file" accept=".json" onchange="importOldStock(event)" style="margin-top:10px; width:100%;">
         </div>
-
-        <button onclick="exportData()" style="width:100%; background:var(--dark); color:white; padding:12px; border:none; border-radius:5px; margin-bottom:10px; cursor:pointer;">1. حمل ملف stock.json للتحديث</button>
-
+        <button onclick="exportData()" style="width:100%; background:var(--dark); color:white; padding:12px; border:none; border-radius:5px; margin-bottom:10px;">حفظ وتصدير stock.json</button>
         <div style="overflow-x:auto;">
-            <table>
-                <thead><tr><th>الصورة</th><th>الاسم/المرجع</th><th>المخزون</th><th>حذف</th></tr></thead>
+            <table id="adminTable">
+                <thead><tr><th>الصورة</th><th>الاسم</th><th>المرجع</th><th>السعر</th><th>الكمية</th><th>حذف</th></tr></thead>
                 <tbody id="stockBody"></tbody>
             </table>
         </div>
@@ -105,57 +97,52 @@
 
 <div id="bonModal">
     <div class="bon-content">
-        <button onclick="closeBon()" style="float:left; background:var(--red); color:white; border:none; padding:5px 10px; cursor:pointer;">X</button>
-        <h3>تعديل الوصل والكميات</h3>
+        <button onclick="closeBon()" style="float:left; background:var(--red); color:white; border:none; padding:5px 10px;">X</button>
+        <h3>مراجعة الوصل</h3>
         
-        <div id="printableBon" style="padding:20px; background:white; border:1px solid #ccc;">
+        <div id="printableBon">
             <div style="text-align:center;">
-                <h1 style="margin:0; color:var(--dark);">HA EXPERT</h1>
-                <p style="margin:5px 0;">لبيع قطع غيار السيارات</p>
-                <hr>
+                <h1 style="margin:0;">HA EXPERT</h1>
+                <p>لقطع غيار السيارات</p>
                 <p id="bonDate" style="font-size:0.8rem;"></p>
-                <input type="text" id="customerName" placeholder="اسم الزبون..." style="border:none; border-bottom:1px solid #ddd; width:200px; text-align:center; font-weight:bold;">
+                <input type="text" id="customerName" placeholder="اسم الزبون..." style="border:none; border-bottom:1px solid #333; width:100%; text-align:center; font-weight:bold; font-size:1.1rem;">
             </div>
 
-            <table style="width:100%; margin-top:20px; border-collapse: collapse;">
+            <table>
                 <thead>
-                    <tr style="background:#f4f4f4;">
+                    <tr>
                         <th>القطعة</th>
-                        <th>السعر</th>
+                        <th>سعر الوحدة</th>
                         <th>الكمية</th>
                         <th>المجموع</th>
                     </tr>
                 </thead>
                 <tbody id="bonItemsBody"></tbody>
                 <tfoot>
-                    <tr style="background:#eee; font-weight:bold;">
-                        <td colspan="3" style="text-align:left;">الإجمالي:</td>
+                    <tr style="background:#f1f1f1; font-weight:bold; font-size:1.1rem;">
+                        <td colspan="3" style="text-align:left;">المجموع الإجمالي (د.ج):</td>
                         <td id="bonTotal">0</td>
                     </tr>
                 </tfoot>
             </table>
 
             <div class="bon-footer">
-                <p>📞 هاتف: <strong>05XXXXXXXX</strong> | 📧 إيميل: <strong>contact@ha-expert.com</strong></p>
-                <p style="font-size: 0.7rem;">شكراً لثقتكم بنا - HA EXPERT</p>
+                <p>📞 الهاتف: 05XXXXXXXX | 📧 الإيميل: ha.expert@gmail.com</p>
+                <p>شكراً لزيارتكم!</p>
             </div>
         </div>
         
-        <div style="margin-top:15px; display: flex; gap: 5px;">
-            <button onclick="sendWhatsApp()" style="flex:1; background:var(--green); color:white; padding:12px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">📱 WhatsApp</button>
-            <button onclick="window.print()" style="flex:1; background:var(--dark); color:white; padding:12px; border:none; border-radius:5px; cursor:pointer;">🖨️ طباعة</button>
-            <button onclick="clearCart()" style="flex:1; background:var(--red); color:white; padding:12px; border:none; border-radius:5px; cursor:pointer;">🗑️ تفريغ</button>
+        <div style="margin-top:15px; display: flex; gap: 10px;">
+            <button onclick="sendWhatsApp()" style="flex:1; background:var(--green); color:white; padding:12px; border:none; border-radius:5px; font-weight:bold;">📱 WhatsApp</button>
+            <button onclick="window.print()" style="flex:1; background:var(--dark); color:white; padding:12px; border:none; border-radius:5px;">🖨️ طباعة</button>
         </div>
     </div>
 </div>
 
 <script>
     let stock = [];
-    let cart = {}; // نستخدم object لتسهيل التحكم بالكميات
-
+    let cart = {};
     const SECRET_KEY = "HA2026";
-    const PHONE = "213XXXXXXXXX"; // ضع رقمك هنا
-    const EMAIL = "yourname@gmail.com"; // ضع إيميلك هنا
 
     async function loadStock() {
         try {
@@ -201,47 +188,32 @@
                     <td>
                         <div class="qty-controls">
                             <button class="qty-btn" onclick="changeQty('${item.id}', -1)">-</button>
-                            <span style="margin:0 10px">${item.qty}</span>
+                            <span style="margin:0 8px">${item.qty}</span>
                             <button class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
                         </div>
-                        <span class="print-only" style="display:none;">${item.qty}</span>
                     </td>
                     <td>${sub}</td>
                 </tr>
             `;
         }).join('');
         document.getElementById('bonItemsBody').innerHTML = html;
-        document.getElementById('bonTotal').innerText = total + " د.ج";
+        document.getElementById('bonTotal').innerText = total;
     }
 
     function openBon() {
         if (Object.keys(cart).length === 0) return alert("السلة فارغة!");
         renderBon();
-        document.getElementById('bonDate').innerText = "تاريخ الوصل: " + new Date().toLocaleString('ar-DZ');
+        document.getElementById('bonDate').innerText = "بتاريخ: " + new Date().toLocaleString('ar-DZ');
         document.getElementById('bonModal').style.display = "block";
     }
 
-    function sendWhatsApp() {
-        let customer = document.getElementById('customerName').value || "زبون";
-        let text = `📦 *طلب جديد - HA EXPERT*\n👤 *الزبون:* ${customer}\n----------\n`;
-        let total = 0;
-        Object.values(cart).forEach(i => {
-            text += `• ${i.name} (x${i.qty}) -> ${i.sell * i.qty} DA\n`;
-            total += i.sell * i.qty;
-        });
-        text += `----------\n💰 *المجموع:* ${total} DA\n📧 ${EMAIL}`;
-        window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`);
-    }
-
-    // بقية الوظائف الأساسية
     function saveToStock() {
         const name = document.getElementById('name').value;
         const ref = document.getElementById('ref').value || '---';
         const sell = parseFloat(document.getElementById('sell').value) || 0;
         const qty = parseFloat(document.getElementById('qty').value) || 0;
         const imgInput = document.getElementById('img');
-        if(!name) return alert("الاسم مطلوب");
-
+        if(!name) return alert("الاسم ضروري");
         const finalize = (imgData) => {
             stock.push({ id: 'ID'+Date.now(), name, ref, sell, qty, img: imgData || '' });
             localStorage.setItem('ha_stock', JSON.stringify(stock));
@@ -251,17 +223,16 @@
         else finalize('');
     }
 
-    function importOldStock(event) {
-        const file = event.target.files[0];
+    function importOldStock(e) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = JSON.parse(e.target.result);
+        reader.onload = function(event) {
+            const data = JSON.parse(event.target.result);
             stock = [...stock, ...data.filter(n => !stock.find(s => s.id == n.id))];
             localStorage.setItem('ha_stock', JSON.stringify(stock));
             updateAll();
-            alert("تم الدمج بنجاح!");
+            alert("تم الدمج!");
         };
-        reader.readAsText(file);
+        reader.readAsText(e.target.files[0]);
     }
 
     function updateAll() {
@@ -271,12 +242,12 @@
 
     function renderStore() {
         document.getElementById('storeBody').innerHTML = stock.map(item => `
-            <div class="product-card ${item.qty <= 0 ? 'out-of-stock' : ''}">
+            <div class="product-card">
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
                 <h4>${item.name}</h4>
                 <div style="font-size:0.7rem;">Ref: ${item.ref}</div>
                 <div class="price">${item.sell} د.ج</div>
-                <button onclick="addToCart('${item.id}')" ${item.qty <= 0 ? 'disabled' : ''} style="width:100%; background:var(--green); color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">+ طلب</button>
+                <button onclick="addToCart('${item.id}')" style="width:100%; background:var(--green); color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">+ طلب</button>
             </div>
         `).join('');
     }
@@ -284,12 +255,35 @@
     function renderAdmin() {
         document.getElementById('stockBody').innerHTML = stock.map((item, idx) => `
             <tr>
-                <td><img src="${item.img}" width="40"></td>
+                <td><img src="${item.img}" width="35"></td>
                 <td>${item.name}</td>
+                <td>${item.ref}</td>
+                <td>${item.sell}</td>
                 <td>${item.qty}</td>
-                <td><button onclick="stock.splice(${idx},1);updateAll();" style="color:red;">X</button></td>
+                <td><button onclick="stock.splice(${idx},1);updateAll();" style="color:red; border:none; background:none; cursor:pointer;">🗑️</button></td>
             </tr>
         `).join('');
+    }
+
+    function sendWhatsApp() {
+        let customer = document.getElementById('customerName').value || "زبون";
+        let text = `📦 *طلب جديد - HA EXPERT*\n👤 *الزبون:* ${customer}\n----------\n`;
+        let total = 0;
+        Object.values(cart).forEach(i => {
+            text += `• ${i.name} | ${i.sell}DA x ${i.qty} = ${i.sell * i.qty}DA\n`;
+            total += i.sell * i.qty;
+        });
+        text += `----------\n💰 *المجموع:* ${total} DA`;
+        window.open(`https://wa.me/213XXXXXXXXX?text=${encodeURIComponent(text)}`);
+    }
+
+    function secureAccess(evt) {
+        if(prompt("كلمة السر:") === SECRET_KEY) {
+            document.querySelectorAll('.content').forEach(c => c.style.display="none");
+            document.getElementById('inventory').style.display="block";
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            evt.currentTarget.classList.add('active');
+        }
     }
 
     function switchTab(evt, name) {
@@ -297,10 +291,6 @@
         document.getElementById(name).style.display="block";
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         evt.currentTarget.classList.add('active');
-    }
-
-    function secureAccess(evt) {
-        if(prompt("كلمة السر:") === SECRET_KEY) switchTab(evt, 'inventory');
     }
 
     function exportData() {
