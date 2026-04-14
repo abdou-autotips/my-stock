@@ -3,57 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v7.5 - Final Version</title>
+    <title>HA EXPERT v7.7 - Storage Fix</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --bg: #f4f7f6; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); margin: 0; padding: 10px; }
         .container { max-width: 1100px; background: white; margin: auto; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding-bottom: 110px; }
-        
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 14px; border: none; background: #e0e0e0; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .tab-btn.active { background: var(--main); color: white; }
-
         .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
         .product-card { border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; background: #fff; display: flex; flex-direction: column; justify-content: space-between; min-height: 290px; }
         .product-card img { width: 100%; height: 140px; object-fit: contain; border-radius: 8px; }
-        
         .admin-section { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
         .admin-section input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; }
-
         .btn-row { display: flex; gap: 10px; margin-bottom: 15px; }
         .btn-row button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 0.85rem; }
-        
         .cart-float { position: fixed; bottom: 25px; left: 25px; background: var(--green); color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 9999; border: 2px solid white; }
-
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; padding: 10px; }
         .modal-content { background:white; max-width:600px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
-
-        /* أزرار الزائد والناقص في البون */
         .qty-btn { background: #eee; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-weight: bold; border-radius: 4px; margin: 0 2px; }
-        .qty-btn:hover { background: #ddd; }
-
         @media print { .no-print { display: none !important; } .modal { display: block; position: absolute; top:0; left:0; width:100%; } .qty-btn { display: none; } }
     </style>
 </head>
 <body>
-
 <div class="container">
     <h1 style="text-align:center; color:var(--main); margin-top:0;">HA EXPERT</h1>
-    
     <div class="tabs no-print">
         <button class="tab-btn active" onclick="switchTab(event, 'store')">🛒 المتجر</button>
         <button class="tab-btn" onclick="secureAccess(event)">🛠️ المدير</button>
     </div>
-
     <div id="store" class="content">
         <input type="text" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:15px;" placeholder="🔍 ابحث عن قطعة..." onkeyup="filterProducts(this.value)">
         <div class="store-grid" id="storeBody"></div>
     </div>
-
     <div id="inventory" class="content" style="display: none;">
         <div class="admin-section">
             <h4 style="margin:0 0 10px 0;">إضافة منتج جديد:</h4>
@@ -67,19 +52,16 @@
             <input type="file" id="p_img" accept="image/*">
             <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold;">📥 إضافة للمخزن</button>
         </div>
-
         <div class="btn-row">
             <button onclick="document.getElementById('fileIn').click()" style="background:var(--green);">📂 تحميل مخزن</button>
             <button onclick="exportJSON()" style="background:var(--dark);">💾 نسخة احتياطية (Backup)</button>
             <input type="file" id="fileIn" style="display:none" onchange="importJSON(event)">
         </div>
-
         <div class="admin-section">
             <h4 style="margin:0 0 10px 0;">معلومات الاتصال:</h4>
             <input type="text" id="store_phone" placeholder="رقم الهاتف" onchange="saveContactInfo()">
             <input type="email" id="store_email" placeholder="البريد الإلكتروني" onchange="saveContactInfo()">
         </div>
-
         <div style="overflow-x:auto;">
             <table>
                 <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع (تعديل)</th><th>مخزون</th><th>حذف</th></tr></thead>
@@ -88,11 +70,7 @@
         </div>
     </div>
 </div>
-
-<div class="cart-float no-print" onclick="openBon()">
-    🛒 <span id="cartCount">0</span> قطع | الوصل 📄
-</div>
-
+<div class="cart-float no-print" onclick="openBon()">🛒 <span id="cartCount">0</span> قطع | الوصل 📄</div>
 <div id="bonModal" class="modal">
     <div class="modal-content">
         <button class="no-print" onclick="closeModal()" style="float:left;">X</button>
@@ -111,13 +89,20 @@
         <button class="no-print" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:15px;" onclick="window.print()">🖨️ طباعة</button>
     </div>
 </div>
-
 <script>
     let stock = JSON.parse(localStorage.getItem('ha_stock')) || [];
     let contact = JSON.parse(localStorage.getItem('ha_contact')) || { phone: '', email: '' };
     let cart = {};
 
-    function save() { localStorage.setItem('ha_stock', JSON.stringify(stock)); render(); }
+    function save() {
+        try {
+            localStorage.setItem('ha_stock', JSON.stringify(stock));
+            render();
+        } catch(e) { 
+            alert("المساحة ممتلئة! الصور القديمة PNG ثقيلة بزاف. جرب حذف بعضها أو استعمل الصور الجديدة JPEG."); 
+        }
+    }
+
     function saveContactInfo() {
         contact.phone = document.getElementById('store_phone').value;
         contact.email = document.getElementById('store_email').value;
@@ -126,7 +111,28 @@
 
     function updateStockPrice(index, newVal) {
         stock[index].sell = parseFloat(newVal) || 0;
-        localStorage.setItem('ha_stock', JSON.stringify(stock));
+        save();
+    }
+
+    // وظيفة سحرية لتصغير الصور وتحويلها لـ JPEG لربح المساحة
+    function compressImage(file, callback) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const max_w = 400; // تصغير العرض لـ 400 بيكسل كافي جداً
+                const scale = max_w / img.width;
+                canvas.width = max_w;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // التحويل لـ JPEG بجودة 0.7 لتقليل الحجم 80%
+                callback(canvas.toDataURL('image/jpeg', 0.7));
+            };
+        };
     }
 
     function addProduct() {
@@ -136,15 +142,22 @@
         const sell = document.getElementById('p_sell').value || 0;
         const qty = document.getElementById('p_qty').value || 0;
         const imgFile = document.getElementById('p_img').files[0];
-        if(!name || !sell) return alert("أدخل البيانات!");
+        
+        if(!name || !sell) return alert("أدخل الاسم والسعر!");
+        
         const saveItem = (img = '') => {
             stock.push({ id: 'ID' + Date.now(), name, ref, buy, sell, qty, img });
             save();
             ['p_name','p_ref','p_buy','p_sell','p_qty','p_img'].forEach(id => document.getElementById(id).value = '');
         };
+
         if(imgFile) {
-            const r = new FileReader(); r.onload = (e) => saveItem(e.target.result); r.readAsDataURL(imgFile);
-        } else saveItem();
+            compressImage(imgFile, (compressedBase64) => {
+                saveItem(compressedBase64);
+            });
+        } else {
+            saveItem();
+        }
     }
 
     function render() {
@@ -154,20 +167,15 @@
                 <h4>${item.name}</h4>
                 <div style="color:var(--main); font-weight:bold; margin-bottom:10px;">${item.sell} د.ج</div>
                 <button onclick="addToCart('${item.id}')" style="width:100%; padding:10px; background:var(--green); color:white; border:none; border-radius:6px; cursor:pointer;">+ طلب</button>
-            </div>
-        `).join('');
-
+            </div>`).join('');
         document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => `
             <tr>
-                <td>${item.name}</td><td>${item.ref}</td>
-                <td style="color:red">${item.buy}</td>
+                <td>${item.name}</td><td>${item.ref}</td><td style="color:red">${item.buy}</td>
                 <td><input type="number" style="width:80px" value="${item.sell}" onchange="updateStockPrice(${i}, this.value)"></td>
-                <td>${item.qty}</td>
-                <td><button onclick="stock.splice(${i},1);save()" style="background:none; border:none; cursor:pointer;">🗑️</button></td>
-            </tr>
-        `).join('');
-        document.getElementById('store_phone').value = contact.phone;
-        document.getElementById('store_email').value = contact.email;
+                <td>${item.qty}</td><td><button onclick="if(confirm('حذف؟')){stock.splice(${i},1);save()}">🗑️</button></td>
+            </tr>`).join('');
+        document.getElementById('store_phone').value = contact.phone || '';
+        document.getElementById('store_email').value = contact.email || '';
     }
 
     function addToCart(id) {
@@ -175,40 +183,28 @@
         if (cart[id]) cart[id].qty += 1; else cart[id] = { ...item, qty: 1 };
         updateCartCount();
     }
-
     function changeQtyInCart(id, delta) {
         if (cart[id]) {
             cart[id].qty += delta;
             if (cart[id].qty <= 0) delete cart[id];
-            updateCartCount();
-            openBon(); // تحديث العرض في المودال
+            updateCartCount(); openBon();
         }
     }
-
     function updateCartCount() { document.getElementById('cartCount').innerText = Object.values(cart).reduce((s, i) => s + i.qty, 0); }
-    
     function openBon() {
         if (Object.keys(cart).length === 0) { closeModal(); return; }
         let total = 0;
         document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
             total += (item.sell * item.qty);
-            return `<tr>
-                <td>${item.name}</td>
-                <td>${item.sell}</td>
-                <td>
-                    <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', -1)">-</button>
-                    ${item.qty}
-                    <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', 1)">+</button>
-                </td>
-                <td>${item.sell * item.qty}</td>
-            </tr>`;
-        }).join('');
+            return `<tr><td>${item.name}</td><td>${item.sell}</td><td>
+            <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', -1)">-</button>${item.qty}
+            <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', 1)">+</button></td>
+            <td>${item.sell * item.qty}</td></tr>`; }).join('');
         document.getElementById('bonTotal').innerText = total + " د.ج";
         document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
         document.getElementById('bonContact').innerText = `هاتف: ${contact.phone || '____'} | إيميل: ${contact.email || '____'}`;
         document.getElementById('bonModal').style.display = "block";
     }
-
     function closeModal() { document.getElementById('bonModal').style.display = "none"; }
     function switchTab(evt, name) {
         document.querySelectorAll('.content').forEach(c => c.style.display="none");
@@ -222,12 +218,11 @@
             c.style.display = c.innerText.toLowerCase().includes(v.toLowerCase()) ? "" : "none";
         });
     }
-
     function exportJSON() {
         const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(stock)], {type:'application/json'})); a.download = 'HA_Stock_Backup.json'; a.click();
     }
     function importJSON(e) {
-        const r = new FileReader(); r.onload = (ev) => { stock = JSON.parse(ev.target.result); save(); alert("تم تحميل المخزن!"); }; r.readAsText(e.target.files[0]);
+        const r = new FileReader(); r.onload = (ev) => { stock = JSON.parse(ev.target.result); save(); alert("تم الاستيراد بنجاح!"); }; r.readAsText(e.target.files[0]);
     }
     window.onload = render;
 </script>
