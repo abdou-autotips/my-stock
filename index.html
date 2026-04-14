@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v7.9 - A-Z Sorting</title>
+    <title>HA EXPERT v8.0 - Professional System</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --bg: #f4f7f6; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -12,9 +12,9 @@
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 14px; border: none; background: #e0e0e0; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .tab-btn.active { background: var(--main); color: white; }
-        .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
-        .product-card { border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; background: #fff; display: flex; flex-direction: column; justify-content: space-between; min-height: 290px; }
-        .product-card img { width: 100%; height: 140px; object-fit: contain; border-radius: 8px; }
+        .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .product-card { border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; background: #fff; display: flex; flex-direction: column; justify-content: space-between; min-height: 320px; }
+        .product-card img { width: 100%; height: 150px; object-fit: contain; border-radius: 8px; }
         .admin-section { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
         .admin-section input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; }
         .btn-row { display: flex; gap: 10px; margin-bottom: 15px; }
@@ -23,8 +23,10 @@
         th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 0.85rem; }
         .cart-float { position: fixed; bottom: 25px; left: 25px; background: var(--green); color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 9999; border: 2px solid white; }
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; padding: 10px; }
-        .modal-content { background:white; max-width:600px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background:white; max-width:650px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
         .qty-btn { background: #eee; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-weight: bold; border-radius: 4px; margin: 0 2px; }
+        .stats-box { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .stat-card { flex: 1; min-width: 150px; padding: 15px; background: var(--dark); color: white; border-radius: 8px; text-align: center; }
         @media print { .no-print { display: none !important; } .modal { display: block; position: absolute; top:0; left:0; width:100%; } .qty-btn { display: none; } }
     </style>
 </head>
@@ -35,29 +37,43 @@
         <button class="tab-btn active" onclick="switchTab(event, 'store')">🛒 المتجر</button>
         <button class="tab-btn" onclick="secureAccess(event)">🛠️ المدير</button>
     </div>
+
     <div id="store" class="content">
-        <input type="text" id="searchInput" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:15px;" placeholder="🔍 ابحث عن قطعة بالاسم أو المرجع..." onkeyup="filterProducts(this.value)">
+        <input type="text" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:15px;" placeholder="🔍 ابحث بالاسم أو المرجع (Ref)..." onkeyup="filterProducts(this.value)">
         <div class="store-grid" id="storeBody"></div>
     </div>
+
     <div id="inventory" class="content" style="display: none;">
         <div class="admin-section">
             <h4 style="margin:0 0 10px 0;">إضافة منتج جديد:</h4>
             <input type="text" id="p_name" placeholder="اسم القطعة">
             <input type="text" id="p_ref" placeholder="المرجع (Ref)">
             <div style="display:flex; gap:10px;">
-                <input type="number" id="p_buy" placeholder="سعر الشراء">
+                <input type="number" id="p_buy" placeholder="سعر الشراء (راس المال)">
                 <input type="number" id="p_sell" placeholder="سعر البيع">
             </div>
             <input type="number" id="p_qty" placeholder="الكمية">
             <input type="file" id="p_img" accept="image/*">
             <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold;">📥 إضافة للمخزن</button>
         </div>
+
+        <div class="admin-section">
+            <h4 style="margin:0 0 10px 0;">معلومات الاتصال:</h4>
+            <input type="text" id="store_phone" placeholder="رقم الهاتف" onchange="saveContact()">
+            <input type="email" id="store_email" placeholder="البريد الإلكتروني" onchange="saveContact()">
+        </div>
+
         <div class="btn-row">
             <button onclick="document.getElementById('fileIn').click()" style="background:var(--green);">📂 تحميل مخزن</button>
-            <button onclick="exportJSON()" style="background:var(--dark);">💾 نسخة احتياطية (Backup)</button>
+            <button onclick="exportJSON()" style="background:var(--dark);">💾 نسخة Backup</button>
             <input type="file" id="fileIn" style="display:none" onchange="importJSON(event)">
         </div>
-        <button onclick="clearAllData()" style="width:100%; padding:8px; background:#c0392b; color:white; border:none; border-radius:6px; margin-bottom:15px; font-size:0.8rem;">⚠️ تنظيف المخزن بالكامل (تفريغ المساحة)</button>
+
+        <div class="stats-box">
+            <div class="stat-card">إجمالي راس المال: <br> <span id="totalBuy">0</span> د.ج</div>
+            <div class="stat-card">الأرباح المتوقعة: <br> <span id="totalProfit">0</span> د.ج</div>
+        </div>
+
         <div style="overflow-x:auto;">
             <table>
                 <thead><tr><th>الاسم (A-Z)</th><th>المرجع</th><th>شراء</th><th>بيع</th><th>مخزون</th><th>حذف</th></tr></thead>
@@ -66,14 +82,17 @@
         </div>
     </div>
 </div>
+
 <div class="cart-float no-print" onclick="openBon()">🛒 <span id="cartCount">0</span> قطع | الوصل 📄</div>
+
 <div id="bonModal" class="modal">
     <div class="modal-content">
-        <button class="no-print" onclick="closeModal()" style="float:left;">X</button>
+        <button class="no-print" onclick="closeModal()" style="float:left; background:#eee; border:none; padding:10px; cursor:pointer;">رجوع (X)</button>
         <div id="printableBon">
             <div style="text-align:center; border-bottom: 2px solid var(--main); padding-bottom:10px;">
                 <h2 style="margin:0; color:var(--main);">HA EXPERT</h2>
                 <p id="bonContact" style="margin:5px 0; font-size:0.9rem;"></p>
+                <input type="text" id="customer_name" class="no-print" placeholder="اسم الزبون..." style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; margin:5px 0;">
                 <p id="bonDate" style="margin:0; font-size:0.8rem;"></p>
             </div>
             <table>
@@ -85,39 +104,40 @@
         <button class="no-print" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:15px;" onclick="window.print()">🖨️ طباعة</button>
     </div>
 </div>
+
 <script>
     let stock = JSON.parse(localStorage.getItem('ha_stock')) || [];
     let contact = JSON.parse(localStorage.getItem('ha_contact')) || { phone: '', email: '' };
     let cart = {};
 
     function save() {
-        // ترتيب السلعة A-Z قبل الحفظ
-        stock.sort((a, b) => a.name.localeCompare(b.name, 'ar', { sensitivity: 'base' }));
-        try {
-            localStorage.setItem('ha_stock', JSON.stringify(stock));
-            render();
-        } catch(e) { 
-            alert("❌ المساحة ممتلئة! الصور القديمة ثقيلة جداً. استعمل زر 'تنظيف المخزن' وأعد رفع السلعة بالصور الجديدة."); 
-        }
+        stock.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+        localStorage.setItem('ha_stock', JSON.stringify(stock));
+        render();
+    }
+
+    function saveContact() {
+        contact.phone = document.getElementById('store_phone').value;
+        contact.email = document.getElementById('store_email').value;
+        localStorage.setItem('ha_contact', JSON.stringify(contact));
     }
 
     function compressImage(file, callback) {
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = (event) => {
+        reader.onload = (e) => {
             const img = new Image();
-            img.src = event.target.result;
+            img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const max_w = 400;
-                const scale = max_w / img.width;
                 canvas.width = max_w;
-                canvas.height = img.height * scale;
+                canvas.height = img.height * (max_w / img.width);
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                callback(canvas.toDataURL('image/jpeg', 0.7)); // ضغط الصورة لربح المساحة
-            };
-        };
+                callback(canvas.toDataURL('image/jpeg', 0.7));
+            }
+        }
     }
 
     function addProduct() {
@@ -127,9 +147,9 @@
         const sell = document.getElementById('p_sell').value || 0;
         const qty = document.getElementById('p_qty').value || 0;
         const imgFile = document.getElementById('p_img').files[0];
-        if(!name || !sell) return alert("أدخل الاسم والسعر!");
+        if(!name || !sell) return alert("أدخل البيانات!");
         const saveItem = (img = '') => {
-            stock.push({ id: 'ID' + Date.now(), name, ref, buy, sell, qty, img });
+            stock.push({ id: 'ID'+Date.now(), name, ref, buy, sell, qty, img });
             save();
             ['p_name','p_ref','p_buy','p_sell','p_qty','p_img'].forEach(id => document.getElementById(id).value = '');
         };
@@ -141,25 +161,25 @@
             <div class="product-card">
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
                 <h4>${item.name}</h4>
-                <div style="font-size:0.8rem; color:#666;">Ref: ${item.ref}</div>
+                <div style="font-size:0.8rem; color:#666;">Ref: ${item.ref} | متوفر: ${item.qty}</div>
                 <div style="color:var(--main); font-weight:bold; margin:10px 0;">${item.sell} د.ج</div>
                 <button onclick="addToCart('${item.id}')" style="width:100%; padding:10px; background:var(--green); color:white; border:none; border-radius:6px; cursor:pointer;">+ طلب</button>
             </div>`).join('');
-        document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => `
-            <tr>
-                <td style="text-align:right">${item.name}</td><td>${item.ref}</td><td style="color:red">${item.buy}</td>
+
+        let tBuy = 0, tProfit = 0;
+        document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => {
+            tBuy += (item.buy * item.qty);
+            tProfit += ((item.sell - item.buy) * item.qty);
+            return `<tr>
+                <td style="text-align:right">${item.name}</td><td>${item.ref}</td><td>${item.buy}</td>
                 <td><input type="number" style="width:80px" value="${item.sell}" onchange="stock[${i}].sell=this.value;save()"></td>
                 <td>${item.qty}</td><td><button onclick="if(confirm('حذف؟')){stock.splice(${i},1);save()}">🗑️</button></td>
-            </tr>`).join('');
-    }
-
-    function clearAllData() {
-        if(confirm("⚠️ هل أنت متأكد؟ سيتم مسح كل المخزن لتفريغ الذاكرة. تأكد من تحميل نسخة Backup أولاً!")) {
-            localStorage.removeItem('ha_stock');
-            stock = [];
-            render();
-            alert("تم تنظيف الذاكرة!");
-        }
+            </tr>`;
+        }).join('');
+        document.getElementById('totalBuy').innerText = tBuy;
+        document.getElementById('totalProfit').innerText = tProfit;
+        document.getElementById('store_phone').value = contact.phone || '';
+        document.getElementById('store_email').value = contact.email || '';
     }
 
     function addToCart(id) {
@@ -167,36 +187,44 @@
         if (cart[id]) cart[id].qty += 1; else cart[id] = { ...item, qty: 1 };
         updateCartCount();
     }
+
+    function changeQtyInCart(id, delta) {
+        if (cart[id]) {
+            cart[id].qty += delta;
+            if (cart[id].qty <= 0) delete cart[id];
+            updateCartCount(); openBon();
+        }
+    }
+
     function updateCartCount() { document.getElementById('cartCount').innerText = Object.values(cart).reduce((s, i) => s + i.qty, 0); }
+
     function openBon() {
         if (Object.keys(cart).length === 0) return;
         let total = 0;
         document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
             total += (item.sell * item.qty);
-            return `<tr><td>${item.name}</td><td>${item.sell}</td><td>${item.qty}</td><td>${item.sell * item.qty}</td></tr>`;
+            return `<tr><td>${item.name}</td><td>${item.sell}</td><td>
+            <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', -1)">-</button>${item.qty}
+            <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', 1)">+</button></td>
+            <td>${item.sell * item.qty}</td></tr>`;
         }).join('');
         document.getElementById('bonTotal').innerText = total + " د.ج";
+        document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
+        document.getElementById('bonContact').innerText = `هاتف: ${contact.phone || '____'} | إيميل: ${contact.email || '____'}`;
         document.getElementById('bonModal').style.display = "block";
     }
+
     function closeModal() { document.getElementById('bonModal').style.display = "none"; }
-    function switchTab(evt, name) {
-        document.querySelectorAll('.content').forEach(c => c.style.display="none");
-        document.getElementById(name).style.display="block";
+    function switchTab(e, n) { 
+        document.querySelectorAll('.content').forEach(c => c.style.display="none"); 
+        document.getElementById(n).style.display="block"; 
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        evt.currentTarget.classList.add('active');
+        e.currentTarget.classList.add('active');
     }
-    function secureAccess(evt) { if(prompt("كلمة السر:") === "HA2026") switchTab(evt, 'inventory'); }
-    function filterProducts(v) {
-        document.querySelectorAll('.product-card').forEach(c => {
-            c.style.display = c.innerText.toLowerCase().includes(v.toLowerCase()) ? "" : "none";
-        });
-    }
-    function exportJSON() {
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(stock)], {type:'application/json'})); a.download = 'HA_Stock_Backup.json'; a.click();
-    }
-    function importJSON(e) {
-        const r = new FileReader(); r.onload = (ev) => { stock = JSON.parse(ev.target.result); save(); alert("تم استيراد المخزن بنجاح!"); }; r.readAsText(e.target.files[0]);
-    }
+    function secureAccess(e) { if(prompt("كلمة السر:") === "HA2026") switchTab(e, 'inventory'); }
+    function filterProducts(v) { document.querySelectorAll('.product-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(v.toLowerCase()) ? "" : "none"); }
+    function exportJSON() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(stock)], {type:'application/json'})); a.download = 'HA_Stock.json'; a.click(); }
+    function importJSON(e) { const r = new FileReader(); r.onload = (ev) => { stock = JSON.parse(ev.target.result); save(); }; r.readAsText(e.target.files[0]); }
     window.onload = render;
 </script>
 </body>
