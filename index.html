@@ -23,6 +23,8 @@
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; padding: 10px; }
         .modal-content { background:white; max-width:650px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
         .qty-btn { background: #eee; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-weight: bold; border-radius: 4px; margin: 0 5px; }
+        .stats-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        .stat-card { flex: 1; padding: 10px; background: var(--dark); color: white; border-radius: 8px; text-align: center; font-size: 0.9rem; }
         @media print { .no-print { display: none !important; } .modal { display: block; position: absolute; top:0; left:0; width:100%; } .qty-btn { display: none; } }
     </style>
 </head>
@@ -45,14 +47,20 @@
             <input type="text" id="p_name" placeholder="اسم القطعة">
             <input type="text" id="p_ref" placeholder="المرجع (Ref)">
             <div style="display:flex; gap:10px;">
-                <input type="number" id="p_buy" placeholder="سعر الشراء">
+                <input type="number" id="p_buy" placeholder="سعر الشراء (راس المال)">
                 <input type="number" id="p_sell" placeholder="سعر البيع">
             </div>
             <input type="number" id="p_qty" placeholder="الكمية">
             <input type="file" id="p_img" accept="image/*">
             <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold;">📥 إضافة للمخزن</button>
-            <button onclick="exportJSON()" style="width:100%; padding:8px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:5px; cursor:pointer;">📋 نسخ بيانات JSON للـ GitHub</button>
+            <button onclick="exportJSON()" style="width:100%; padding:8px; background:#444; color:white; border:none; border-radius:6px; margin-top:10px; cursor:pointer;">📋 نسخ بيانات JSON للـ GitHub</button>
         </div>
+        
+        <div class="stats-box">
+            <div class="stat-card">رأس المال: <br> <span id="totalBuy">0</span> د.ج</div>
+            <div class="stat-card">الأرباح: <br> <span id="totalProfit">0</span> د.ج</div>
+        </div>
+
         <div style="overflow-x:auto;">
             <table>
                 <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع</th><th>مخزون</th><th>حذف</th></tr></thead>
@@ -70,8 +78,7 @@
         <div id="printableBon">
             <div style="text-align:center; border-bottom: 2px solid var(--main); padding-bottom:10px;">
                 <h2 style="margin:0; color:var(--main);">HA EXPERT</h2>
-                <p id="bonContact" style="margin:5px 0; font-size:0.9rem;"></p>
-                <p id="bonDate" style="margin:0; font-size:0.8rem;"></p>
+                <p id="bonDate" style="margin:5px 0; font-size:0.8rem;"></p>
             </div>
             <table>
                 <thead><tr><th>القطعة</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
@@ -87,7 +94,6 @@
     let stock = [];
     let cart = {};
 
-    // 1. تحميل السلعة (من GitHub أولاً، وإذا لم يوجد من الذاكرة المحلية)
     async function loadStock() {
         try {
             const resp = await fetch('https://abdou-autotips.github.io/my-stock/stock.json?v=' + Date.now());
@@ -100,13 +106,11 @@
         }
     }
 
-    // 2. دالة الحفظ (تحفظ في المتصفح باش تقدر تنسخها للـ JSON)
     function save() {
         localStorage.setItem('ha_stock', JSON.stringify(stock));
         render();
     }
 
-    // 3. دالة إضافة منتج جديد (رجعتها كما كانت)
     function addProduct() {
         const name = document.getElementById('p_name').value;
         const ref = document.getElementById('p_ref').value;
@@ -116,7 +120,6 @@
         const imgInput = document.getElementById('p_img');
 
         if(!name || !sell) return alert("أدخل الاسم والسعر!");
-
         const newItem = { id: Date.now(), name, ref, buy, sell, qty, img: "" };
 
         if(imgInput.files[0]) {
@@ -127,14 +130,12 @@
             stock.push(newItem);
             save();
         }
-        // مسح الخانات بعد الإضافة
         document.querySelectorAll('.admin-section input').forEach(i => i.value = "");
     }
 
-    // دالة نسخ البيانات باش تحطها في stock.json
     function exportJSON() {
         const dataStr = JSON.stringify(stock, null, 2);
-        navigator.clipboard.writeText(dataStr).then(() => alert("تم نسخ البيانات! حطها ضرك في ملف stock.json في GitHub."));
+        navigator.clipboard.writeText(dataStr).then(() => alert("تم النسخ! حطها في GitHub الآن."));
     }
 
     function render() {
@@ -146,23 +147,30 @@
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
                 <h4>${item.name}</h4>
                 <div style="font-size:0.8rem; color:${isAvailable ? 'green' : 'red'};">
-                    Ref: ${item.ref} | ${isAvailable ? '✅ متوفر حالياً' : '❌ غير متوفر'}
+                    Ref: ${item.ref} | ${isAvailable ? '✅ متوفر' : '❌ نفذت'}
                 </div>
                 <div style="color:var(--main); font-weight:bold; margin:10px 0;">${item.sell} د.ج</div>
                 <button onclick="${isAvailable ? `addToCart('${item.id}')` : ''}" 
                         style="width:100%; padding:10px; background:${isAvailable ? 'var(--green)' : '#ccc'}; color:white; border:none; border-radius:6px; cursor:pointer;"
                         ${!isAvailable ? 'disabled' : ''}>
-                    ${isAvailable ? '+ طلب القطعة' : 'نفذت الكمية'}
+                    ${isAvailable ? '+ طلب' : 'غير متوفر'}
                 </button>
             </div>`;
         }).join('');
 
-        // عرض جدول المدير
-        document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => `
-            <tr>
+        // عرض المدير وحساب الإحصائيات
+        let tBuy = 0, tProfit = 0;
+        document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => {
+            tBuy += (Number(item.buy || 0) * Number(item.qty || 0));
+            tProfit += ((Number(item.sell || 0) - Number(item.buy || 0)) * Number(item.qty || 0));
+            return `<tr>
                 <td>${item.name}</td><td>${item.ref}</td><td>${item.buy}</td><td>${item.sell}</td><td>${item.qty}</td>
                 <td><button onclick="if(confirm('حذف؟')){stock.splice(${i},1);save()}">🗑️</button></td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
+        
+        document.getElementById('totalBuy').innerText = tBuy;
+        document.getElementById('totalProfit').innerText = tProfit;
     }
 
     function addToCart(id) {
@@ -188,8 +196,7 @@
         document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
             total += (item.sell * item.qty);
             return `<tr>
-                <td>${item.name}</td>
-                <td>${item.sell}</td>
+                <td>${item.name}</td><td>${item.sell}</td>
                 <td>
                     <button class="qty-btn no-print" onclick="changeQty('${item.id}', -1)">-</button>
                     ${item.qty}
