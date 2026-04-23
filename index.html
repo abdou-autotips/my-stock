@@ -22,9 +22,9 @@
         .cart-float { position: fixed; bottom: 25px; left: 25px; background: var(--green); color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 9999; border: 2px solid white; }
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; padding: 10px; }
         .modal-content { background:white; max-width:650px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .qty-btn { background: #f0f0f0; border: 1px solid #bbb; padding: 4px 10px; cursor: pointer; font-weight: bold; border-radius: 4px; margin: 0 5px; color: var(--dark); }
-        .qty-btn:hover { background: #ddd; }
-        @media print { .no-print { display: none !important; } .modal { display: block; position: absolute; top:0; left:0; width:100%; } }
+        /* ستايل أزرار الزائد والناقص */
+        .qty-btn { background: #eee; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-weight: bold; border-radius: 4px; margin: 0 5px; }
+        @media print { .no-print { display: none !important; } .modal { display: block; position: absolute; top:0; left:0; width:100%; } .qty-btn { display: none; } }
     </style>
 </head>
 <body>
@@ -42,15 +42,20 @@
 
     <div id="inventory" class="content" style="display: none;">
         <div class="admin-section">
-            <h4 style="margin:0 0 10px 0;">إحصائيات المخزن:</h4>
-            <div style="display: flex; gap: 10px;">
-                <div style="flex:1; background:var(--dark); color:white; padding:10px; border-radius:8px;">إجمالي رأس المال: <br> <span id="totalBuy">0</span> د.ج</div>
-                <div style="flex:1; background:var(--main); color:white; padding:10px; border-radius:8px;">الأرباح المتوقعة: <br> <span id="totalProfit">0</span> د.ج</div>
+            <h4 style="margin:0 0 10px 0;">إضافة منتج جديد:</h4>
+            <input type="text" id="p_name" placeholder="اسم القطعة">
+            <input type="text" id="p_ref" placeholder="المرجع (Ref)">
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="p_buy" placeholder="سعر الشراء">
+                <input type="number" id="p_sell" placeholder="سعر البيع">
             </div>
+            <input type="number" id="p_qty" placeholder="الكمية">
+            <input type="file" id="p_img" accept="image/*">
+            <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold;">📥 إضافة للمخزن</button>
         </div>
         <div style="overflow-x:auto;">
             <table>
-                <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع</th><th>مخزون</th></tr></thead>
+                <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع</th><th>مخزون</th><th>حذف</th></tr></thead>
                 <tbody id="adminTableBody"></tbody>
             </table>
         </div>
@@ -80,7 +85,7 @@
 
 <script>
     let stock = [];
-    let contact = JSON.parse(localStorage.getItem('ha_contact')) || { phone: '+213558713675', email: 'abdou.autotips@gmail.com' };
+    let contact = { phone: '+213558713675', email: 'abdou.autotips@gmail.com' };
     let cart = {};
 
     async function loadStock() {
@@ -90,13 +95,12 @@
             stock = Array.isArray(data) ? data : (data[0] || []);
             render();
         } catch (e) {
-            console.error("خطأ في التحميل:", e);
+            stock = JSON.parse(localStorage.getItem('ha_stock')) || [];
             render();
         }
     }
 
     function render() {
-        // عرض المتجر
         document.getElementById('storeBody').innerHTML = stock.map(item => {
             const isAvailable = Number(item.qty) > 0;
             return `
@@ -115,15 +119,11 @@
             </div>`;
         }).join('');
 
-        // عرض المدير
-        let tBuy = 0, tProfit = 0;
-        document.getElementById('adminTableBody').innerHTML = stock.map((item) => {
-            tBuy += (Number(item.buy) * Number(item.qty));
-            tProfit += ((Number(item.sell) - Number(item.buy)) * Number(item.qty));
-            return `<tr><td>${item.name}</td><td>${item.ref}</td><td>${item.buy}</td><td>${item.sell}</td><td><b>${item.qty}</b></td></tr>`;
-        }).join('');
-        document.getElementById('totalBuy').innerText = tBuy;
-        document.getElementById('totalProfit').innerText = tProfit;
+        document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => `
+            <tr>
+                <td>${item.name}</td><td>${item.ref}</td><td>${item.buy}</td><td>${item.sell}</td><td>${item.qty}</td>
+                <td><button onclick="if(confirm('حذف؟')){stock.splice(${i},1);save()}">🗑️</button></td>
+            </tr>`).join('');
     }
 
     function addToCart(id) {
@@ -132,13 +132,13 @@
         updateCartCount();
     }
 
-    // الدالة الجديدة لتغيير الكمية من داخل البون
-    function changeQtyInCart(id, delta) {
+    // دالة التحكم في الكمية داخل البون
+    function changeQty(id, delta) {
         if (cart[id]) {
             cart[id].qty += delta;
             if (cart[id].qty <= 0) delete cart[id];
             updateCartCount();
-            openBon(); // إعادة فتح البون لتحديث الأرقام
+            openBon();
         }
     }
 
@@ -153,9 +153,9 @@
                 <td>${item.name}</td>
                 <td>${item.sell}</td>
                 <td>
-                    <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', -1)">-</button>
-                    <span>${item.qty}</span>
-                    <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', 1)">+</button>
+                    <button class="qty-btn no-print" onclick="changeQty('${item.id}', -1)">-</button>
+                    ${item.qty}
+                    <button class="qty-btn no-print" onclick="changeQty('${item.id}', 1)">+</button>
                 </td>
                 <td>${item.sell * item.qty}</td>
             </tr>`;
@@ -170,6 +170,7 @@
     function switchTab(e, n) { 
         document.querySelectorAll('.content').forEach(c => c.style.display="none"); 
         document.getElementById(n).style.display="block"; 
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         e.currentTarget.classList.add('active');
     }
     function secureAccess(e) { if(prompt("كلمة السر:") === "HA2026") switchTab(e, 'inventory'); }
