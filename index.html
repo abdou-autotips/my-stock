@@ -56,28 +56,13 @@
             <input type="file" id="p_img" accept="image/*">
             <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold;">📥 إضافة للمخزن</button>
         </div>
-
-        <div class="admin-section">
-            <h4 style="margin:0 0 10px 0;">معلومات الاتصال:</h4>
-            <input type="text" id="store_phone" placeholder="رقم الهاتف">
-            <input type="email" id="store_email" placeholder="البريد الإلكتروني">
-            <button onclick="saveContact()" style="background:var(--dark); color:white; padding:5px; border:none; border-radius:4px; cursor:pointer;">💾 حفظ المعلومات</button>
-        </div>
-
-        <div class="btn-row">
-            <button onclick="document.getElementById('fileIn').click()" style="background:var(--green);">📂 تحميل مخزن</button>
-            <button onclick="exportJSON()" style="background:var(--dark);">💾 نسخة Backup</button>
-            <input type="file" id="fileIn" style="display:none" onchange="importJSON(event)">
-        </div>
-
         <div class="stats-box">
             <div class="stat-card">إجمالي راس المال: <br> <span id="totalBuy">0</span> د.ج</div>
             <div class="stat-card">الأرباح المتوقعة: <br> <span id="totalProfit">0</span> د.ج</div>
         </div>
-
         <div style="overflow-x:auto;">
             <table>
-                <thead><tr><th>الاسم (A-Z)</th><th>المرجع</th><th>شراء</th><th>بيع</th><th>مخزون</th><th>حذف</th></tr></thead>
+                <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع</th><th>مخزون</th><th>حذف</th></tr></thead>
                 <tbody id="adminTableBody"></tbody>
             </table>
         </div>
@@ -93,7 +78,6 @@
             <div style="text-align:center; border-bottom: 2px solid var(--main); padding-bottom:10px;">
                 <h2 style="margin:0; color:var(--main);">HA EXPERT</h2>
                 <p id="bonContact" style="margin:5px 0; font-size:0.9rem;"></p>
-                <input type="text" id="customer_name" class="no-print" placeholder="اسم الزبون..." style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; margin:5px 0;">
                 <p id="bonDate" style="margin:0; font-size:0.8rem;"></p>
             </div>
             <table>
@@ -107,100 +91,71 @@
 </div>
 
 <script>
-    let stock = JSON.parse(localStorage.getItem('ha_stock')) || [];
+    let stock = [];
     let contact = JSON.parse(localStorage.getItem('ha_contact')) || { phone: '+213558713675', email: 'abdou.autotips@gmail.com' };
     let cart = {};
 
-    function save() {
+    // تحميل البيانات من ملف stock.json الموجود في GitHub
+    async function loadStock() {
         try {
-            stock.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
-            localStorage.setItem('ha_stock', JSON.stringify(stock));
+            const resp = await fetch('stock.json?v=' + Date.now());
+            const data = await resp.json();
+            stock = Array.isArray(data) ? data : (data[0] || []);
             render();
         } catch (e) {
-            alert("⚠️ تنبيه: المساحة ممتلئة بالصور القديمة! البرنامج لم يستطع الحفظ. يرجى مسح الكاش أو رفع ملف JSON جديد.");
+            console.error("خطأ في تحميل السلعة:", e);
+            // إذا فشل التحميل من السيرفر، جرب الذاكرة المحلية
+            stock = JSON.parse(localStorage.getItem('ha_stock')) || [];
+            render();
         }
     }
 
-    function saveContact() {
-        contact.phone = document.getElementById('store_phone').value;
-        contact.email = document.getElementById('store_email').value;
-        localStorage.setItem('ha_contact', JSON.stringify(contact));
-        alert("تم حفظ معلومات الاتصال");
+    function save() {
+        stock.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+        localStorage.setItem('ha_stock', JSON.stringify(stock));
         render();
     }
 
-    function compressImage(file, callback) {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const max_w = 300; // تقليل العرض أكثر لتفادي البلوكاج
-                canvas.width = max_w;
-                canvas.height = img.height * (max_w / img.width);
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                callback(canvas.toDataURL('image/jpeg', 0.6)); // ضغط أقوى 60%
-            }
-        }
-    }
-
-    function addProduct() {
-        const name = document.getElementById('p_name').value;
-        const ref = document.getElementById('p_ref').value;
-        const buy = document.getElementById('p_buy').value || 0;
-        const sell = document.getElementById('p_sell').value || 0;
-        const qty = document.getElementById('p_qty').value || 0;
-        const imgFile = document.getElementById('p_img').files[0];
-        if(!name || !sell) return alert("أدخل الاسم والسعر!");
-        const saveItem = (img = '') => {
-            stock.push({ id: 'ID'+Date.now(), name, ref, buy, sell, qty, img });
-            save();
-            ['p_name','p_ref','p_buy','p_sell','p_qty','p_img'].forEach(id => document.getElementById(id).value = '');
-        };
-        if(imgFile) compressImage(imgFile, saveItem); else saveItem();
-    }
-
     function render() {
-        document.getElementById('storeBody').innerHTML = stock.map(item => `
+        // عرض المتجر للمشتري (إخفاء الكمية الحقيقية وسعر الشراء)
+        document.getElementById('storeBody').innerHTML = stock.map(item => {
+            const isAvailable = Number(item.qty) > 0;
+            return `
             <div class="product-card">
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
                 <h4>${item.name}</h4>
-                <div style="font-size:0.8rem; color:#666;">Ref: ${item.ref} | متوفر: ${item.qty}</div>
+                <div style="font-size:0.8rem; color:${isAvailable ? 'green' : 'red'};">
+                    Ref: ${item.ref} | ${isAvailable ? '✅ متوفر حالياً' : '❌ غير متوفر'}
+                </div>
                 <div style="color:var(--main); font-weight:bold; margin:10px 0;">${item.sell} د.ج</div>
-                <button onclick="addToCart('${item.id}')" style="width:100%; padding:10px; background:var(--green); color:white; border:none; border-radius:6px; cursor:pointer;">+ طلب</button>
-            </div>`).join('');
+                <button onclick="${isAvailable ? `addToCart('${item.id}')` : ''}" 
+                        style="width:100%; padding:10px; background:${isAvailable ? 'var(--green)' : '#ccc'}; color:white; border:none; border-radius:6px; cursor:pointer;"
+                        ${!isAvailable ? 'disabled' : ''}>
+                    ${isAvailable ? '+ طلب القطعة' : 'نفذت الكمية'}
+                </button>
+            </div>`;
+        }).join('');
 
+        // عرض جدول المدير (كل المعلومات ظاهرة)
         let tBuy = 0, tProfit = 0;
         document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => {
             tBuy += (Number(item.buy) * Number(item.qty));
             tProfit += ((Number(item.sell) - Number(item.buy)) * Number(item.qty));
             return `<tr>
                 <td style="text-align:right">${item.name}</td><td>${item.ref}</td><td>${item.buy}</td>
-                <td><input type="number" style="width:80px" value="${item.sell}" onchange="stock[${i}].sell=this.value;save()"></td>
-                <td>${item.qty}</td><td><button onclick="if(confirm('حذف؟')){stock.splice(${i},1);save()}">🗑️</button></td>
+                <td>${item.sell}</td>
+                <td><b>${item.qty}</b></td>
+                <td><button onclick="if(confirm('حذف؟')){stock.splice(${i},1);save()}">🗑️</button></td>
             </tr>`;
         }).join('');
         document.getElementById('totalBuy').innerText = tBuy;
         document.getElementById('totalProfit').innerText = tProfit;
-        document.getElementById('store_phone').value = contact.phone || '';
-        document.getElementById('store_email').value = contact.email || '';
     }
 
     function addToCart(id) {
         const item = stock.find(p => p.id == id);
         if (cart[id]) cart[id].qty += 1; else cart[id] = { ...item, qty: 1 };
         updateCartCount();
-    }
-
-    function changeQtyInCart(id, delta) {
-        if (cart[id]) {
-            cart[id].qty += delta;
-            if (cart[id].qty <= 0) delete cart[id];
-            updateCartCount(); openBon();
-        }
     }
 
     function updateCartCount() { document.getElementById('cartCount').innerText = Object.values(cart).reduce((s, i) => s + i.qty, 0); }
@@ -210,10 +165,7 @@
         let total = 0;
         document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
             total += (item.sell * item.qty);
-            return `<tr><td>${item.name}</td><td>${item.sell}</td><td>
-            <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', -1)">-</button>${item.qty}
-            <button class="qty-btn no-print" onclick="changeQtyInCart('${item.id}', 1)">+</button></td>
-            <td>${item.sell * item.qty}</td></tr>`;
+            return `<tr><td>${item.name}</td><td>${item.sell}</td><td>${item.qty}</td><td>${item.sell * item.qty}</td></tr>`;
         }).join('');
         document.getElementById('bonTotal').innerText = total + " د.ج";
         document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
@@ -230,9 +182,8 @@
     }
     function secureAccess(e) { if(prompt("كلمة السر:") === "HA2026") switchTab(e, 'inventory'); }
     function filterProducts(v) { document.querySelectorAll('.product-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(v.toLowerCase()) ? "" : "none"); }
-    function exportJSON() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(stock)], {type:'application/json'})); a.download = 'HA_Backup.json'; a.click(); }
-    function importJSON(e) { const r = new FileReader(); r.onload = (ev) => { stock = JSON.parse(ev.target.result); save(); }; r.readAsText(e.target.files[0]); }
-    window.onload = render;
+
+    window.onload = loadStock;
 </script>
 </body>
 </html>
