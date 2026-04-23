@@ -22,7 +22,6 @@
         .cart-float { position: fixed; bottom: 25px; left: 25px; background: var(--green); color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 9999; border: 2px solid white; }
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; padding: 10px; }
         .modal-content { background:white; max-width:650px; margin: 20px auto; padding:20px; border-radius:10px; position: relative; max-height: 90vh; overflow-y: auto; }
-        /* ستايل أزرار الزائد والناقص */
         .qty-btn { background: #eee; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-weight: bold; border-radius: 4px; margin: 0 5px; }
         @media print { .no-print { display: none !important; } .modal { display: block; position: absolute; top:0; left:0; width:100%; } .qty-btn { display: none; } }
     </style>
@@ -52,6 +51,7 @@
             <input type="number" id="p_qty" placeholder="الكمية">
             <input type="file" id="p_img" accept="image/*">
             <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:6px; font-weight:bold;">📥 إضافة للمخزن</button>
+            <button onclick="exportJSON()" style="width:100%; padding:8px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:5px; cursor:pointer;">📋 نسخ بيانات JSON للـ GitHub</button>
         </div>
         <div style="overflow-x:auto;">
             <table>
@@ -85,9 +85,9 @@
 
 <script>
     let stock = [];
-    let contact = { phone: '+213558713675', email: 'abdou.autotips@gmail.com' };
     let cart = {};
 
+    // 1. تحميل السلعة (من GitHub أولاً، وإذا لم يوجد من الذاكرة المحلية)
     async function loadStock() {
         try {
             const resp = await fetch('https://abdou-autotips.github.io/my-stock/stock.json?v=' + Date.now());
@@ -100,7 +100,45 @@
         }
     }
 
+    // 2. دالة الحفظ (تحفظ في المتصفح باش تقدر تنسخها للـ JSON)
+    function save() {
+        localStorage.setItem('ha_stock', JSON.stringify(stock));
+        render();
+    }
+
+    // 3. دالة إضافة منتج جديد (رجعتها كما كانت)
+    function addProduct() {
+        const name = document.getElementById('p_name').value;
+        const ref = document.getElementById('p_ref').value;
+        const buy = document.getElementById('p_buy').value;
+        const sell = document.getElementById('p_sell').value;
+        const qty = document.getElementById('p_qty').value;
+        const imgInput = document.getElementById('p_img');
+
+        if(!name || !sell) return alert("أدخل الاسم والسعر!");
+
+        const newItem = { id: Date.now(), name, ref, buy, sell, qty, img: "" };
+
+        if(imgInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => { newItem.img = e.target.result; stock.push(newItem); save(); };
+            reader.readAsDataURL(imgInput.files[0]);
+        } else {
+            stock.push(newItem);
+            save();
+        }
+        // مسح الخانات بعد الإضافة
+        document.querySelectorAll('.admin-section input').forEach(i => i.value = "");
+    }
+
+    // دالة نسخ البيانات باش تحطها في stock.json
+    function exportJSON() {
+        const dataStr = JSON.stringify(stock, null, 2);
+        navigator.clipboard.writeText(dataStr).then(() => alert("تم نسخ البيانات! حطها ضرك في ملف stock.json في GitHub."));
+    }
+
     function render() {
+        // عرض المتجر
         document.getElementById('storeBody').innerHTML = stock.map(item => {
             const isAvailable = Number(item.qty) > 0;
             return `
@@ -119,6 +157,7 @@
             </div>`;
         }).join('');
 
+        // عرض جدول المدير
         document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => `
             <tr>
                 <td>${item.name}</td><td>${item.ref}</td><td>${item.buy}</td><td>${item.sell}</td><td>${item.qty}</td>
@@ -132,7 +171,6 @@
         updateCartCount();
     }
 
-    // دالة التحكم في الكمية داخل البون
     function changeQty(id, delta) {
         if (cart[id]) {
             cart[id].qty += delta;
@@ -162,7 +200,6 @@
         }).join('');
         document.getElementById('bonTotal').innerText = total + " د.ج";
         document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
-        document.getElementById('bonContact').innerText = `الهاتف: ${contact.phone}`;
         document.getElementById('bonModal').style.display = "block";
     }
 
