@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HA EXPERT v8.2 - Stable</title>
+    <title>HA EXPERT v8.3 - Stable</title>
     <style>
         :root { --main: #D35400; --dark: #2c3e50; --green: #27ae60; --blue: #2980b9; --bg: #f4f7f6; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -45,8 +45,8 @@
     <div id="inventory" class="content" style="display: none;">
         <div class="admin-section">
             <h4 style="margin:0 0 10px 0;">معلومات التواصل (تظهر في الوصل):</h4>
-            <input type="text" id="shop_phone" placeholder="رقم الهاتف" onblur="saveInfo()">
-            <input type="text" id="shop_email" placeholder="البريد الإلكتروني" onblur="saveInfo()">
+            <input type="text" id="shop_phone" placeholder="رقم الهاتف" value="+213558713665" onblur="saveInfo()">
+            <input type="text" id="shop_email" placeholder="البريد الإلكتروني" value="abdou.atotips@gmail.com" onblur="saveInfo()">
         </div>
 
         <div class="admin-section">
@@ -54,7 +54,7 @@
             <input type="text" id="p_name" placeholder="اسم القطعة">
             <input type="text" id="p_ref" placeholder="المرجع (Ref)">
             <div style="display:flex; gap:10px;">
-                <input type="number" id="p_buy" placeholder="سعر الشراء (راس المال)">
+                <input type="number" id="p_buy" placeholder="سعر الشراء">
                 <input type="number" id="p_sell" placeholder="سعر البيع">
             </div>
             <input type="number" id="p_qty" placeholder="الكمية">
@@ -69,7 +69,6 @@
         </div>
 
         <div style="overflow-x:auto;">
-            <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 5px;">* اضغط على السعر أو الكمية في الجدول لتعديلها مباشرة.</p>
             <table>
                 <thead><tr><th>الاسم</th><th>المرجع</th><th>شراء</th><th>بيع</th><th>مخزون</th><th>حذف</th></tr></thead>
                 <tbody id="adminTableBody"></tbody>
@@ -105,8 +104,8 @@
     let cart = {};
 
     async function loadStock() {
-        // تحميل معلومات المحل
-        const info = JSON.parse(localStorage.getItem('ha_info')) || { phone: '', email: '' };
+        // تحميل معلومات المحل مع وضع قيم افتراضية ثابتة
+        const info = JSON.parse(localStorage.getItem('ha_info')) || { phone: '+213558713665', email: 'abdou.atotips@gmail.com' };
         document.getElementById('shop_phone').value = info.phone;
         document.getElementById('shop_email').value = info.email;
 
@@ -214,10 +213,10 @@
     function openBon() {
         if (Object.keys(cart).length === 0) { closeModal(); return; }
         
-        // تحديث معلومات المحل في الوصل قبل الفتح
-        const info = JSON.parse(localStorage.getItem('ha_info')) || { phone: '', email: '' };
-        document.getElementById('disp_phone').innerText = info.phone || "غير مسجل";
-        document.getElementById('disp_email').innerText = info.email || "غير مسجل";
+        // جلب معلومات المحل (إما المعدلة أو الافتراضية)
+        const info = JSON.parse(localStorage.getItem('ha_info')) || { phone: '+213558713665', email: 'abdou.atotips@gmail.com' };
+        document.getElementById('disp_phone').innerText = info.phone;
+        document.getElementById('disp_email').innerText = info.email;
 
         let total = 0;
         document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
