@@ -19,7 +19,6 @@
         .admin-section input { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 0.85rem; }
-        /* ستايل الخانات القابلة للتعديل */
         .editable { background: #fffbe6; border: 1px dashed #d35400 !important; cursor: pointer; font-weight: bold; color: #2c3e50; width: 60px; }
         .cart-float { position: fixed; bottom: 25px; left: 25px; background: var(--green); color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 9999; border: 2px solid white; }
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; padding: 10px; }
@@ -44,6 +43,12 @@
     </div>
 
     <div id="inventory" class="content" style="display: none;">
+        <div class="admin-section">
+            <h4 style="margin:0 0 10px 0;">معلومات التواصل (تظهر في الوصل):</h4>
+            <input type="text" id="shop_phone" placeholder="رقم الهاتف" onblur="saveInfo()">
+            <input type="text" id="shop_email" placeholder="البريد الإلكتروني" onblur="saveInfo()">
+        </div>
+
         <div class="admin-section">
             <h4 style="margin:0 0 10px 0;">إضافة منتج جديد:</h4>
             <input type="text" id="p_name" placeholder="اسم القطعة">
@@ -81,7 +86,9 @@
         <div id="printableBon">
             <div style="text-align:center; border-bottom: 2px solid var(--main); padding-bottom:10px;">
                 <h2 style="margin:0; color:var(--main);">HA EXPERT</h2>
-                <p id="bonDate" style="margin:5px 0; font-size:0.8rem;"></p>
+                <p style="margin:5px 0; font-size:0.9rem; font-weight:bold;">الهاتف: <span id="disp_phone"></span></p>
+                <p style="margin:2px 0; font-size:0.8rem;">الإيميل: <span id="disp_email"></span></p>
+                <p id="bonDate" style="margin:5px 0; font-size:0.8rem; color:#666;"></p>
             </div>
             <table>
                 <thead><tr><th>القطعة</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
@@ -89,7 +96,7 @@
                 <tfoot><tr style="background:#eee; font-weight:bold;"><td colspan="3">الإجمالي:</td><td id="bonTotal">0</td></tr></tfoot>
             </table>
         </div>
-        <button class="no-print" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:15px; font-weight:bold;" onclick="window.print()">🖨️ طباعة</button>
+        <button class="no-print" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; border-radius:6px; margin-top:15px; font-weight:bold;" onclick="window.print()">🖨️ طباعة الوصل</button>
     </div>
 </div>
 
@@ -98,6 +105,11 @@
     let cart = {};
 
     async function loadStock() {
+        // تحميل معلومات المحل
+        const info = JSON.parse(localStorage.getItem('ha_info')) || { phone: '', email: '' };
+        document.getElementById('shop_phone').value = info.phone;
+        document.getElementById('shop_email').value = info.email;
+
         try {
             const resp = await fetch('https://abdou-autotips.github.io/my-stock/stock.json?v=' + Date.now());
             const data = await resp.json();
@@ -109,12 +121,19 @@
         }
     }
 
+    function saveInfo() {
+        const info = {
+            phone: document.getElementById('shop_phone').value,
+            email: document.getElementById('shop_email').value
+        };
+        localStorage.setItem('ha_info', JSON.stringify(info));
+    }
+
     function save() {
         localStorage.setItem('ha_stock', JSON.stringify(stock));
         render();
     }
 
-    // دالة تحديث السلعة مباشرة من الجدول
     function updateVal(index, field, value) {
         stock[index][field] = value;
         save();
@@ -148,40 +167,29 @@
     }
 
     function render() {
-        // عرض المتجر
         document.getElementById('storeBody').innerHTML = stock.map(item => {
             const isAvailable = Number(item.qty) > 0;
-            return `
-            <div class="product-card">
+            return `<div class="product-card">
                 <img src="${item.img || 'https://via.placeholder.com/150'}">
                 <h4>${item.name}</h4>
-                <div style="font-size:0.8rem; color:${isAvailable ? 'green' : 'red'};">
-                    Ref: ${item.ref} | ${isAvailable ? '✅ متوفر' : '❌ نفذت'}
-                </div>
+                <div style="font-size:0.8rem; color:${isAvailable ? 'green' : 'red'};">Ref: ${item.ref} | ${isAvailable ? '✅ متوفر' : '❌ نفذت'}</div>
                 <div style="color:var(--main); font-weight:bold; margin:10px 0;">${item.sell} د.ج</div>
-                <button onclick="${isAvailable ? `addToCart('${item.id}')` : ''}" 
-                        style="width:100%; padding:10px; background:${isAvailable ? 'var(--green)' : '#ccc'}; color:white; border:none; border-radius:6px; cursor:pointer;"
-                        ${!isAvailable ? 'disabled' : ''}>
-                    ${isAvailable ? '+ طلب' : 'غير متوفر'}
-                </button>
+                <button onclick="${isAvailable ? `addToCart('${item.id}')` : ''}" style="width:100%; padding:10px; background:${isAvailable ? 'var(--green)' : '#ccc'}; color:white; border:none; border-radius:6px; cursor:pointer;" ${!isAvailable ? 'disabled' : ''}>${isAvailable ? '+ طلب' : 'غير متوفر'}</button>
             </div>`;
         }).join('');
 
-        // عرض المدير مع خاصية التعديل المباشر (contenteditable)
         let tBuy = 0, tProfit = 0;
         document.getElementById('adminTableBody').innerHTML = stock.map((item, i) => {
             tBuy += (Number(item.buy || 0) * Number(item.qty || 0));
             tProfit += ((Number(item.sell || 0) - Number(item.buy || 0)) * Number(item.qty || 0));
             return `<tr>
-                <td>${item.name}</td>
-                <td>${item.ref}</td>
+                <td>${item.name}</td><td>${item.ref}</td>
                 <td class="editable" contenteditable="true" onblur="updateVal(${i}, 'buy', this.innerText)">${item.buy}</td>
                 <td class="editable" contenteditable="true" onblur="updateVal(${i}, 'sell', this.innerText)">${item.sell}</td>
                 <td class="editable" contenteditable="true" onblur="updateVal(${i}, 'qty', this.innerText)">${item.qty}</td>
                 <td><button onclick="if(confirm('حذف؟')){stock.splice(${i},1);save()}">🗑️</button></td>
             </tr>`;
         }).join('');
-        
         document.getElementById('totalBuy').innerText = tBuy;
         document.getElementById('totalProfit').innerText = tProfit;
     }
@@ -205,31 +213,24 @@
 
     function openBon() {
         if (Object.keys(cart).length === 0) { closeModal(); return; }
+        
+        // تحديث معلومات المحل في الوصل قبل الفتح
+        const info = JSON.parse(localStorage.getItem('ha_info')) || { phone: '', email: '' };
+        document.getElementById('disp_phone').innerText = info.phone || "غير مسجل";
+        document.getElementById('disp_email').innerText = info.email || "غير مسجل";
+
         let total = 0;
         document.getElementById('bonItemsBody').innerHTML = Object.values(cart).map(item => {
             total += (item.sell * item.qty);
-            return `<tr>
-                <td>${item.name}</td><td>${item.sell}</td>
-                <td>
-                    <button class="qty-btn no-print" onclick="changeQty('${item.id}', -1)">-</button>
-                    ${item.qty}
-                    <button class="qty-btn no-print" onclick="changeQty('${item.id}', 1)">+</button>
-                </td>
-                <td>${item.sell * item.qty}</td>
-            </tr>`;
+            return `<tr><td>${item.name}</td><td>${item.sell}</td><td><button class="qty-btn no-print" onclick="changeQty('${item.id}', -1)">-</button>${item.qty}<button class="qty-btn no-print" onclick="changeQty('${item.id}', 1)">+</button></td><td>${item.sell * item.qty}</td></tr>`;
         }).join('');
         document.getElementById('bonTotal').innerText = total + " د.ج";
-        document.getElementById('bonDate').innerText = "التاريخ: " + new Date().toLocaleString('ar-DZ');
+        document.getElementById('bonDate').innerText = "بتاريخ: " + new Date().toLocaleString('ar-DZ');
         document.getElementById('bonModal').style.display = "block";
     }
 
     function closeModal() { document.getElementById('bonModal').style.display = "none"; }
-    function switchTab(e, n) { 
-        document.querySelectorAll('.content').forEach(c => c.style.display="none"); 
-        document.getElementById(n).style.display="block"; 
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        e.currentTarget.classList.add('active');
-    }
+    function switchTab(e, n) { document.querySelectorAll('.content').forEach(c => c.style.display="none"); document.getElementById(n).style.display="block"; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); e.currentTarget.classList.add('active'); }
     function secureAccess(e) { if(prompt("كلمة السر:") === "HA2026") switchTab(e, 'inventory'); }
     function filterProducts(v) { document.querySelectorAll('.product-card').forEach(c => c.style.display = c.innerText.toLowerCase().includes(v.toLowerCase()) ? "" : "none"); }
 
